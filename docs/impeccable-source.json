@@ -1,0 +1,245 @@
+{
+  "repository": "pbakaus/impeccable",
+  "commit": "f2c7051853848826aac2f4646581d62a732155ad",
+  "cliVersion": "4.1.0",
+  "skillVersion": "4.3.1",
+  "method": "CLI installed with pnpm; upstream skill files obtained through authenticated GitHub connector after npx installer DNS failure.",
+  "files": [
+    {
+      "path": ".agents/skills/impeccable/SKILL.md",
+      "sha": "2f12a53b1e5eaa38fd69625926340704a4ced54b"
+    },
+    {
+      "path": ".agents/skills/impeccable/agents/impeccable_asset_producer.toml",
+      "sha": "30f49ab65fff68050f4a7ba6cc389bc8ae840636"
+    },
+    {
+      "path": ".agents/skills/impeccable/agents/impeccable_documenter.toml",
+      "sha": "45203ec73dc5d2509d0bd4f13e0eccbe51b4366e"
+    },
+    {
+      "path": ".agents/skills/impeccable/agents/impeccable_finish_reviewer.toml",
+      "sha": "cdecfe4dc2bef1990ca255cdcd99c54ade23d2e9"
+    },
+    {
+      "path": ".agents/skills/impeccable/agents/impeccable_manual_edit_applier.toml",
+      "sha": "469dd2da6512966a110b94e20abd18283d3689e7"
+    },
+    {
+      "path": ".agents/skills/impeccable/agents/openai.yaml",
+      "sha": "ee6cae7726ef85d3744c1b978608668a07aefeef"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/adapt.md",
+      "sha": "85f7c022f5c65baebdd8df16b996898a4f520e3a"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/adapt.native.md",
+      "sha": "88975b36f38bc6b709eec052d398ce8996d55d19"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/android.md",
+      "sha": "1f67a6bb574960cccb1692f460cc5432baebad65"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/animate.md",
+      "sha": "c8fb9e038bb74a125646b64c49bc39711f63e8f4"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/audit.md",
+      "sha": "0af13e165f6768d7b20e1d03dbd64ce36a2704ab"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/audit.native.md",
+      "sha": "321847a79680fd61908fced1ddab0ac20581aeb7"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/bolder.md",
+      "sha": "0ea9bcc0eb5f94d06bb3c3b52c5079eb1d0ca22a"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/clarify.md",
+      "sha": "4506a31c95e02b2ad918367a0ef4461643d51532"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/colorize.md",
+      "sha": "02fa661efac9229d6e869a20ef8ee928d4b986a0"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/craft-floor.md",
+      "sha": "ae213ce801ebb2085033b309b4144e8d7e9996ba"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/craft.md",
+      "sha": "dbbc9402c07cdab21f2b6eb69279b8435fecfd7f"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/critique.md",
+      "sha": "c1285ca137d9aa1280e538601a0e84140246fe56"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/degraded/asset-producer.md",
+      "sha": "903b977764fd1a6e864e0862a7d1d695a7c4a6e8"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/degraded/documenter.md",
+      "sha": "e9dfb799bcece32233386bf9702bc3141d56d196"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/degraded/finish-reviewer.md",
+      "sha": "b5a131005b3bb617dbdfec584ac79100e17af02f"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/degraded/manual-edit-applier.md",
+      "sha": "ef5095b924623ce04e02188a6790ebd98a273bcd"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/delight.md",
+      "sha": "60a8e83ee48d50901acfa886d3ec4bc72b40ec6f"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/distill.md",
+      "sha": "13f6cd5840c2030406c8fa59b70cb5fa86c239ab"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/doctor.md",
+      "sha": "2d41282821fab74e95165d0277d9d561e32311b9"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/document.md",
+      "sha": "83abb54b8ea773577a464f08ab78beaa411f4c70"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/extract.md",
+      "sha": "7e98bd04605aaa8e6e7200deff5fe5cd5cc28841"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/generate.md",
+      "sha": "b28b3f96e97327fbc96901934ff517a058633904"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/harden.md",
+      "sha": "124742e1cca3caff2c495009a8f408382e73e7d1"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/hooks.md",
+      "sha": "bf297ed66bc9242760177d7375e921d0302e267c"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/init.md",
+      "sha": "0612fdde8a82dfe585a0a84eaaee833a5f0b146a"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/ios.md",
+      "sha": "c6244dfe32176e5718d86211b7d1eb5601eb0860"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/layout.md",
+      "sha": "aa547c742fc373bc459bdbb7977683441aa48ec0"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/live-setup.md",
+      "sha": "6e10f00f7f2a789da582f38cdaef89de39ead266"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/live.md",
+      "sha": "fb85b3fdd99f94c78752da4c4d2d2c06bdaa1439"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/new-work.md",
+      "sha": "cd2a22b98eac53ddfe5c2d61b4a31be693e58fe4"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/onboard.md",
+      "sha": "90e33916ef348f050681d400a67e5745bfdb6d41"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/operate.md",
+      "sha": "524f2c3ae9fa497284e9699f3ca5320cce5d05cf"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/optimize.md",
+      "sha": "fc56c22376854d77e8099b925232bba25001e5e6"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/overdrive.md",
+      "sha": "34dface28cb99425f4153ee08447220ea1839b79"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/polish.md",
+      "sha": "f93170f773cac058f51e289603aed7575d62a6a2"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/quieter.md",
+      "sha": "870ea86599bebf65509291df22533e4b5c3d4ceb"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/routing.md",
+      "sha": "21c12a626e7ef084fa6ed5d03b93b91e3eb122ce"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/shape.md",
+      "sha": "90a74ae813331cbce8fff6beb498ced77970fadf"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/typeset.md",
+      "sha": "6f117f429cdefe60c0a07cbd5f02f72a40eb8a7d"
+    },
+    {
+      "path": ".agents/skills/impeccable/reference/visualize.md",
+      "sha": "f4dc6613eff861e34aa9123392afc9e59b0ca3a2"
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/VERSION",
+      "sha": "9faa1b7a7339db85692f91ad4b922554624a3ef7"
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/command-metadata.json",
+      "sha": "89891ea4df179d5a07cf3aef42e84dafb1d05689"
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/data/font-index-failures.json",
+      "sha": "1aca67220413ef163570c75405b444d7a27a32be"
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/impeccable",
+      "sha": "eb60f8667dd6924bc6271e9e1a0761ea5f945751"
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/impeccable.cmd",
+      "sha": "7ebe419bfe5b58c6214e39e8ce566181c72781d2"
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/live-browser-dom.js",
+      "sha": "e85c95c43ead132f04fe61dc3d0bf90b04e22d37"
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/live-browser-ignores.js",
+      "sha": "1c8514c7bcd8b8d889a1763965326fb6adec24a1"
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/live-browser-session.js",
+      "sha": "1514bf472a5bb6dffdec1c67176713e3fab47af6"
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/live-browser.js",
+      "sha": "2b149cbd90cfd4d2392cec740ba8b75e22981ff5"
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/modern-screenshot.umd.js",
+      "sha": "a9c5208f6b141d3bafdb8eb843d6fcbdcf23e370"
+    },
+    {
+      "path": ".agents/skills/impeccable/LICENSE",
+      "sha": "bb3f6d23b1f8025514a62a12b51b47d73e3c9aa9"
+    },
+    {
+      "path": ".agents/skills/impeccable/NOTICE.md",
+      "sha": "0468271c904ae334cfaf27da6f8df3d5f419a1f0"
+    },
+    {
+      "path": ".agents/skills/impeccable/scripts/data/font-index.json",
+      "sha": "9d2029971df232a72ff6584d264c104490521742"
+    }
+  ]
+}

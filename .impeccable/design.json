@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-19T22:39:44.020Z",
+  "title": "Sistema visual da i.byara",
+  "extensions": {
+    "motion": [
+      {
+        "name": "interactive-color",
+        "value": "160ms ease",
+        "purpose": "Transições cromáticas; desativadas com redução de movimento."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "mobile-max",
+        "value": "767px"
+      },
+      {
+        "name": "meal-stack-max",
+        "value": "970px"
+      },
+      {
+        "name": "compact-desktop-max",
+        "value": "1200px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Autorizar compra",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ação explícita do formulário.",
+      "html": "<button class=\"ds-authorize\">Autorizar compra e buscar refeição</button>",
+      "css": ".ds-authorize{background:var(--primary,#b9361e);color:var(--card,#fffdf9);border:0;border-radius:8px;padding:13px 16px;min-height:54px;font:600 15px/1.4 'DM Sans Variable',Arial,sans-serif;transition:background-color 160ms ease}.ds-authorize:focus-visible{outline:2px solid var(--primary,#b9361e);outline-offset:4px}.ds-authorize:active{translate:0 1px}.ds-authorize:disabled{opacity:.55}@media(prefers-reduced-motion:reduce){.ds-authorize{transition:none}}"
+    },
+    {
+      "name": "Busca operacional",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campo de busca de pedidos.",
+      "html": "<input class=\"ds-search\" aria-label=\"Buscar pedido\" placeholder=\"Prato ou código do pedido\">",
+      "css": ".ds-search{height:44px;background:var(--card,#fffdf9);color:var(--foreground,#342720);border:1px solid var(--input,#d7c7b5);border-radius:8px;padding:4px 12px;font:14px 'DM Sans Variable',Arial,sans-serif}.ds-search::placeholder{color:var(--muted-foreground,#756253)}.ds-search:focus-visible{outline:none;border-color:var(--primary,#b9361e);box-shadow:0 0 0 3px #b9361e80}@media(max-width:767px){.ds-search{min-height:46px;font-size:16px}}"
+    },
+    {
+      "name": "Painel de intenção",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Recipiente do formulário de compra.",
+      "html": "<section class=\"ds-intent\"><h2>Vamos matar essa fome?</h2><p>Conte sua vontade. A Byara cuida da busca.</p></section>",
+      "css": ".ds-intent{background:var(--card,#fffdf9);color:var(--foreground,#342720);border:1px solid var(--border,#e5d9ca);border-top:3px solid var(--primary,#b9361e);border-radius:14px;padding:27px;box-shadow:none}.ds-intent h2{margin:0;font:550 26px/1.25 'Fraunces Variable',Georgia,serif;letter-spacing:-.5px}.ds-intent p{margin:7px 0 0;color:var(--muted-foreground,#756253);font:14px/1.5 'DM Sans Variable',Arial,sans-serif}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Cardápio de cozinha brasileira",
+    "overview": "Cerâmica clara, tomate nas ações e açafrão nos destaques. Fotografia gastronômica aproxima a compra da comida; controles diretos sustentam a operação.",
+    "keyCharacteristics": [
+      "Comida como conteúdo.",
+      "Títulos expressivos; controles legíveis.",
+      "Estados identificados por texto e cor."
+    ],
+    "rules": [
+      {
+        "name": "Estados legíveis",
+        "body": "Cor acompanha rótulos, ícones ou mensagens; não comunica estado sozinha.",
+        "section": "colors"
+      },
+      {
+        "name": "Controles claros",
+        "body": "Preserve sans nos controles e numerais tabulares nos valores.",
+        "section": "typography"
+      }
+    ],
+    "dos": [
+      "Preservar origem das imagens e contexto de demonstração.",
+      "Manter foco visível e respeitar redução de movimento.",
+      "Associar estados a texto compreensível."
+    ],
+    "donts": [
+      "Representar imagem ilustrativa como fotografia do produto vendido.",
+      "Transformar verde em acento predominante.",
+      "Herdar kickers decorativos como identidade."
+    ]
+  }
+}

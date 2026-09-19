@@ -1,0 +1,32 @@
+name: Tarefa
+description: Uma entrega pequena e verificável
+title: 'feat: '
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Objetivo e resultado esperado
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área principal
+      options:
+        - Interface mobile / desktop
+        - Domínio / pedidos / estoque
+        - Integrações NeuraLake / Agora
+        - Qualidade / infraestrutura
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de aceite e validação
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Dependências e arquivos compartilhados
+      description: Combine alterações em contratos, banco e lockfile antes de começar.

@@ -1,0 +1,27 @@
+name: Bug
+description: Comportamento incorreto e passos para reproduzir
+title: 'fix: '
+body:
+  - type: textarea
+    id: steps
+    attributes:
+      label: Como reproduzir
+      description: Informe visão Restaurante/Consumidor, tela, passos e dados fictícios usados.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Esperado e observado
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Ambiente
+      placeholder: Versão, navegador, sistema e largura da tela
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidências
+      description: Não inclua chaves, tokens, documentos fiscais reais ou dados pessoais.

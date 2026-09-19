@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<NFe xmlns="http://www.portalfiscal.inf.br/nfe"><infNFe Id="NFe11111111111111111111111111111111111111111111" versao="4.00"><ide><tpAmb>2</tpAmb></ide><emit><xNome>Distribuidora fictícia de homologação</xNome></emit><det nItem="1"><prod><xProd>Patinho cru limpo</xProd><uCom>KG</uCom><qCom>2.0000</qCom><vProd>80.00</vProd></prod></det></infNFe></NFe>

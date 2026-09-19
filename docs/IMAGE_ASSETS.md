@@ -1,0 +1,11 @@
+# Imagens da release 0.3.0
+
+`public/images/bife-a-cavalo-1280.webp` (215.206 bytes) e `public/images/bife-a-cavalo-640.webp` (76.198 bytes) derivam da mesma imagem criada com a ferramenta integrada de geração de imagens em 19/09/2026. Redimensionamento e compressão WebP via Sharp, qualidade 84. Não são fotografias de pratos efetivamente vendidos.
+
+Uso: inspiração do consumidor, ficha/offer de bife a cavalo e apresentação ilustrativa da cozinha. `DishPhoto` só associa essa imagem a o nome exato “bife a cavalo” (ignorando caixa e espaços externos); outros pratos usam estado sem fotografia. Formatos preservam proporção original 3:2; o layout faz recorte com object-fit.
+
+Prompt exato usado na geração:
+
+> Use case: ads-marketing. Create a premium, irresistibly appetizing editorial FOOD PHOTOGRAPH for a Brazilian food-ordering web app called i.byara. Single landscape image, no typography whatsoever. Subject: Brazilian bife a cavalo on a rustic ivory ceramic dinner plate, succulent pan-seared beef steak topped with one fried egg with vivid glossy golden orange runny yolk and lightly crisp lacy edges, fluffy distinct white rice grains, small helping glossy brown carioca beans, golden crisp thick french fries, tiny fresh parsley garnish. Authentic generous prato feito, beautifully realistic, not fine dining micro portions. Close three-quarter overhead angle, entire plate mostly visible with realistic food textures prominent, plate central but slightly to the right, camera crops table not food. Warm burnt tomato terracotta table and softly rumpled warm cream linen at lower left, fork partially visible near linen. Strong soft natural side light, delicious specular highlights on yolk and steak, subtle gentle shadows and natural depth. Palette egg-yolk saffron, tomato terracotta, cream, toasted browns and a hint of herb green. Appetizing tactile photography, professionally styled but home-cooked Brazilian character. No people, no text, no logos, no stickers, no price badges, no frames, no watermark. Landscape 3:2 composition, high resolution, photographic detail.
+
+As fontes DM Sans e Fraunces são fornecidas pelos pacotes Fontsource versionados no lockfile, sob licença OFL-1.1, e servidas localmente pelo build. Não há dependência de Google Fonts em tempo de execução.
