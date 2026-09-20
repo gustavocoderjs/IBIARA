@@ -55,7 +55,7 @@ function NavItem({ item, active, onClick }: {
     onClick: () => void;
 }) { const { setOpenMobile } = useSidebar(); return <SidebarMenuItem><SidebarMenuButton className="nav-item" isActive={active} onClick={() => { onClick(); setOpenMobile(false); }}><item.icon /><span>{item.label}</span>{active && <span className="nav-active-mark"/>}</SidebarMenuButton></SidebarMenuItem>; }
 export default function Workspace() {
-    const [role, setRole] = useState<Role>('merchant'), [view, setView] = useState('conversation'), [data, setData] = useState<ViewState | null>(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
+    const [role, setRole] = useState<Role>('merchant'), [view, setView] = useState('conversation'), [data, setData] = useState<ViewState | null>(null), [busy, setBusy] = useState(false), [error, setError] = useState(''), [guidedDemo, setGuidedDemo] = useState(false);
     const roleRef = useRef<Role>(role), inflight = useRef(false), initialView = useRef(false), lastContact = useRef(0);
     const [draft, setDraft] = useState('');
     useEffect(() => { window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); }, [view, role]);
@@ -97,7 +97,7 @@ export default function Workspace() {
         return () => { source.close(); clearInterval(check); clearInterval(fallback); document.removeEventListener('visibilitychange', refresh); window.removeEventListener('online', refresh); window.removeEventListener('offline', checkConnection); };
     }, [role, load, data?.sequence]);
     const send: Send = async (command, options) => { if (inflight.current)
-        return null; inflight.current = true; setBusy(true); setError(''); const body = JSON.stringify({ ...command, scope: role }); const key = replayRef.current?.body === body ? replayRef.current.key : requestKey(); replayRef.current = { body, key }; try {
+        return null; inflight.current = true; setBusy(true); setError(''); const body = JSON.stringify({ ...command, scope: command.scope ?? role }); const key = replayRef.current?.body === body ? replayRef.current.key : requestKey(); replayRef.current = { body, key }; try {
         const response = await fetch('/api/v1/commands', { signal: AbortSignal.timeout(20000), method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key }, body });
         const value = await response.json() as NonNullable<Awaited<ReturnType<Send>>> & { error?: { code: string; message: string } };
         if (!response.ok) {
@@ -124,9 +124,20 @@ export default function Workspace() {
     useEffect(() => registerWorkspaceTools(() => roleRef.current, async () => { const response = await fetch(`/api/v1/state?role=${roleRef.current}`); if (!response.ok)
         throw new Error('Não foi possível ler o contexto.'); return response.json(); }, setView), []);
     const changeRole = (v: string) => { if (inflight.current) { toast.info('Aguarde a atualização atual.'); return; } initialView.current = false; roleRef.current = v as Role; setData(null); setDraft(''); setRole(v as Role); setView(v === 'merchant' ? 'conversation' : 'market'); setError(''); };
-    const r = data?.restaurant;
+    const startGuidedDemo = async () => {
+        if (busy) return;
+        setGuidedDemo(true);
+        const hasDemoData = !!data?.restaurant?.recipes.length || !!data?.orders.length || !!data?.purchases?.length;
+        if (!hasDemoData) {
+            const seeded = await send({ type: 'seed_demo', scope: 'merchant' }, { quiet: true });
+            if (!seeded) { setGuidedDemo(false); return; }
+        }
+        initialView.current = false;
+        roleRef.current = 'buyer';
+        setData(null); setDraft(''); setRole('buyer'); setView('market'); setError('');
+    };    const r = data?.restaurant;
     return <SidebarProvider style={{ '--sidebar-width': '246px' } as React.CSSProperties}><Sidebar className="app-sidebar"><SidebarHeader className="brand-header"><Link className="wordmark" href="/" aria-label="i.byara, início">i<span>.</span>byara</Link><span className="brand-caption">Comida boa conecta.</span></SidebarHeader><SidebarContent><div className="role-switch"><Tabs value={role} onValueChange={changeRole}><TabsList><TabsTrigger value="merchant"><Store size={14}/>Restaurante</TabsTrigger><TabsTrigger value="buyer"><UserRound size={14}/>Consumidor</TabsTrigger></TabsList></Tabs></div><SidebarGroup><SidebarGroupLabel className="nav-label">{role === 'merchant' ? 'MINHA COZINHA' : 'MEU AGENTE'}</SidebarGroupLabel><SidebarMenu>{(role === 'merchant' ? merchantNav : buyerNav).map(i => <NavItem key={i.id} item={i} active={view === i.id} onClick={() => setView(i.id)}/>)}</SidebarMenu></SidebarGroup><SidebarGroup className="secondary-nav"><SidebarGroupLabel className="nav-label">ACOMPANHAMENTO</SidebarGroupLabel><SidebarMenu>{[{ id: 'activity', label: 'Atividade dos agentes', icon: Activity }, { id: 'integrations', label: 'Integrações', icon: Plug }].map(i => <NavItem key={i.id} item={i} active={view === i.id} onClick={() => setView(i.id)}/>)}</SidebarMenu></SidebarGroup></SidebarContent><SidebarFooter className="sidebar-bottom"><div className="demo-note"><FlaskConical size={19}/><div><strong>Espaço de demonstração</strong><p>Explore com dados fictícios.<br />Nenhuma cobrança real.</p></div></div><div className="operator"><span className="operator-avatar">{role === 'merchant' ? 'SN' : 'EU'}</span><div><strong>{role === 'merchant' ? 'Seu restaurante' : 'Seu consumidor'}</strong><span>Operador da demonstração</span></div><ChevronRight size={15}/></div></SidebarFooter></Sidebar>
- <div className={`workspace view-${view}`}><header className="topbar"><div className="breadcrumb"><SidebarTrigger className="mobile-nav"/><span>i.byara</span><ChevronRight size={14}/><strong>{role === 'merchant' ? 'Sua cozinha' : 'Consumidor'}</strong></div><div className="topbar-right"><Button className="role-shortcut" variant="ghost" disabled={busy} onClick={() => changeRole(role === 'merchant' ? 'buyer' : 'merchant')}><UtensilsCrossed size={16}/>{role === 'merchant' ? 'Quero comer' : 'Minha cozinha'}</Button>{role === 'merchant' && <Button className="header-voice" variant="outline" onClick={() => setView('voice')}><Mic size={16}/>Modo de voz</Button>}<span className={`connection-status ${connection}`} role="status">{connection === 'connected' ? 'Sincronizado' : connection === 'reconnecting' ? 'Reconectando…' : 'Conectando…'}</span><Tag tone="neutral"><FlaskConical size={13}/>Sandbox</Tag><span className="release-label">Release 0.3.0</span></div></header><main className="main"><div className="page-heading"><div><h1>{titles[view]?.[0]}</h1><p>{titles[view]?.[1]}</p></div>{view === 'conversation' && <Tag><LockKeyhole size={13}/>Conversa privada</Tag>}</div>
+ <div className={`workspace view-${view}`}><header className="topbar"><div className="breadcrumb"><SidebarTrigger className="mobile-nav"/><span>i.byara</span><ChevronRight size={14}/><strong>{role === 'merchant' ? 'Sua cozinha' : 'Consumidor'}</strong></div><div className="topbar-right"><Button className="guided-demo-trigger" disabled={busy} onClick={startGuidedDemo}><Play size={16}/>{busy ? 'Preparando…' : 'Experimentar demo'}</Button><Button className="role-shortcut" variant="ghost" disabled={busy} onClick={() => { setGuidedDemo(false); changeRole(role === 'merchant' ? 'buyer' : 'merchant'); }}><UtensilsCrossed size={16}/>{role === 'merchant' ? 'Quero comer' : 'Minha cozinha'}</Button>{role === 'merchant' && <Button className="header-voice" variant="outline" onClick={() => setView('voice')}><Mic size={16}/>Modo de voz</Button>}<span className={`connection-status ${connection}`} role="status">{connection === 'connected' ? 'Sincronizado' : connection === 'reconnecting' ? 'Reconectando…' : 'Conectando…'}</span><Tag tone="neutral"><FlaskConical size={13}/>Sandbox</Tag><span className="release-label">Release 0.3.0</span></div></header><main className="main"><div className="page-heading"><div><h1>{guidedDemo && view === 'market' ? 'Veja a i.byara em ação.' : titles[view]?.[0]}</h1><p>{guidedDemo && view === 'market' ? 'Uma compra guiada, do seu pedido à reserva confirmada.' : titles[view]?.[1]}</p></div>{view === 'conversation' && <Tag><LockKeyhole size={13}/>Conversa privada</Tag>}</div>
  {error && <div className="error-banner" role="alert"><AlertCircle size={18}/><span>{error}</span><Button variant="ghost" onClick={load} size="sm">Tentar novamente</Button></div>}
  {!data ? <div className="loading-grid" aria-label="Carregando cozinha"><Skeleton className="h-[540px] rounded-2xl"/><Skeleton className="h-[400px] rounded-2xl"/></div> : <>
  {view === 'conversation' && r && <Conversation data={data} send={send} busy={busy} navigate={setView} input={draft} setInput={setDraft}/>}
@@ -138,7 +149,7 @@ export default function Workspace() {
  {view === 'orders' && (role === 'merchant' ? <OrderBoard data={data} send={send} busy={busy} navigate={setView}/> : <Orders data={data} send={send} busy={busy}/>)}
  {view === 'activity' && <ActivityPanel data={data}/>}
  {view === 'integrations' && <Integrations />}
- {view === 'market' && role === 'buyer' && <Market data={data} send={send} busy={busy}/>}
+ {view === 'market' && role === 'buyer' && <Market data={data} send={send} busy={busy} guided={guidedDemo} onExitGuided={() => setGuidedDemo(false)}/>}
  </>}
  <footer className="page-footer"><span><Sprout size={13}/>i.byara</span><span>{role === 'merchant' ? 'Sua cozinha. Seus limites. Agentes negociando.' : 'Sua intenção. Seus limites. Agentes negociando.'}</span><span>NeuraLake + Agora · mocks</span></footer></main></div><MobileNavigation role={role} view={view} navigate={setView} pending={data?.orders.filter(o => o.status === 'CONFIRMED' || o.status === 'PREPARING').length ?? 0}/><Toaster richColors position="top-right"/></SidebarProvider>;
 }
