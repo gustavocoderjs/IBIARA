@@ -19,7 +19,7 @@ function fail(error: unknown) { const e = error instanceof DomainError ? error :
 export async function GET(req: Request) { try {
     const path = new URL(req.url).pathname.split('/').pop();
     if (path === 'healthz')
-        return Response.json({ status: 'ok', release: '0.3.0', mode: 'SANDBOX' }, { headers });
+        return Response.json({ status: 'ok', release: '0.4.0', mode: 'SANDBOX' }, { headers });
     const id = owner(req), store = new D1Store();
     const { state } = await getState(store, id);
     const context = role(req);

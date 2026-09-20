@@ -1,3 +1,10 @@
+---
+version: 1
+slug: "components-workspace-tsx"
+primary_target: "components/workspace.tsx"
+related_targets: ["components/marketplace.tsx","components/motion-surface.tsx","app/appetite.css"]
+---
+
 # Interface espacial — contrato de direção
 
 Modo: Operate. Referência indicada pelo usuário: Apple, movimento e profundidade 3D. Caminho direto em código, preservando funções e conteúdo comercial. A referência explícita prevalece sobre o sorteio de direção `ca1e79bb`, cujo catálogo remoto estava indisponível.

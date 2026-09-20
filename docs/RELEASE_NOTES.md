@@ -1,3 +1,17 @@
+# 0.4.0 · profundidade e movimento
+
+Data: 20/09/2026. SANDBOX. Redesign solicitado pelo usuário com referência Apple.
+
+- Superfícies claras e grafite, tipografia sans local, maior hierarquia e tomate nas ações. Revisão aplicada à compra e às telas da cozinha.
+- Prato em camadas fotográficas CSS 3D: resposta limitada ao cursor e à rolagem, sem loop contínuo nem dependência nova. Não é um modelo 3D navegável.
+- Transições curtas entre áreas, confirmação de pedido e entrada de tickets. Controles permanecem disponíveis durante a animação.
+- Apresentação estática no toque e com redução de movimento. Cabeçalho e navegação mobile mantêm contexto durante a rolagem.
+- Compra em sandbox validada no navegador: teto R$ 35,00, total R$ 30,90, preparo e conclusão na cozinha.
+- Fotografias existentes mantêm identificação de origem. Nenhuma alteração nas regras de preço, reserva, autenticação ou integrações.
+- Evidências e limites em `docs/evidence/VALIDATION-0.4.0.md`.
+
+---
+
 # Pós-0.3.0 · correção de versões e plano gratuito
 
 Data: 20/09/2026. SANDBOX.

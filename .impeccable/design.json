@@ -1,23 +1,349 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-19T22:39:44.020Z",
-  "title": "Sistema visual da i.byara",
+  "generatedAt": "2026-09-20T04:45:54.134524+00:00",
+  "title": "Design System: i.byara",
   "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Tomate",
+        "tonalRamp": [
+          "oklch(15.00% 0.17645 32.14)",
+          "oklch(26.43% 0.17645 32.14)",
+          "oklch(37.86% 0.17645 32.14)",
+          "oklch(49.29% 0.17645 32.14)",
+          "oklch(60.71% 0.17645 32.14)",
+          "oklch(72.14% 0.17645 32.14)",
+          "oklch(83.57% 0.17645 32.14)",
+          "oklch(95.00% 0.17645 32.14)"
+        ]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Cinza frio",
+        "tonalRamp": [
+          "oklch(15.00% 0.00265 286.35)",
+          "oklch(26.43% 0.00265 286.35)",
+          "oklch(37.86% 0.00265 286.35)",
+          "oklch(49.29% 0.00265 286.35)",
+          "oklch(60.71% 0.00265 286.35)",
+          "oklch(72.14% 0.00265 286.35)",
+          "oklch(83.57% 0.00265 286.35)",
+          "oklch(95.00% 0.00265 286.35)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Grafite de leitura",
+        "tonalRamp": [
+          "oklch(15.00% 0.00585 271.18)",
+          "oklch(26.43% 0.00585 271.18)",
+          "oklch(37.86% 0.00585 271.18)",
+          "oklch(49.29% 0.00585 271.18)",
+          "oklch(60.71% 0.00585 271.18)",
+          "oklch(72.14% 0.00585 271.18)",
+          "oklch(83.57% 0.00585 271.18)",
+          "oklch(95.00% 0.00585 271.18)"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Branco",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95.00% 0.00000 0.00)"
+        ]
+      },
+      "secondary": {
+        "role": "neutral",
+        "displayName": "Cinza de agrupamento",
+        "tonalRamp": [
+          "oklch(15.00% 0.00267 286.35)",
+          "oklch(26.43% 0.00267 286.35)",
+          "oklch(37.86% 0.00267 286.35)",
+          "oklch(49.29% 0.00267 286.35)",
+          "oklch(60.71% 0.00267 286.35)",
+          "oklch(72.14% 0.00267 286.35)",
+          "oklch(83.57% 0.00267 286.35)",
+          "oklch(95.00% 0.00267 286.35)"
+        ]
+      },
+      "muted-foreground": {
+        "role": "neutral",
+        "displayName": "Cinza de apoio",
+        "tonalRamp": [
+          "oklch(15.00% 0.01266 280.24)",
+          "oklch(26.43% 0.01266 280.24)",
+          "oklch(37.86% 0.01266 280.24)",
+          "oklch(49.29% 0.01266 280.24)",
+          "oklch(60.71% 0.01266 280.24)",
+          "oklch(72.14% 0.01266 280.24)",
+          "oklch(83.57% 0.01266 280.24)",
+          "oklch(95.00% 0.01266 280.24)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Pêssego",
+        "tonalRamp": [
+          "oklch(15.00% 0.01871 38.15)",
+          "oklch(26.43% 0.01871 38.15)",
+          "oklch(37.86% 0.01871 38.15)",
+          "oklch(49.29% 0.01871 38.15)",
+          "oklch(60.71% 0.01871 38.15)",
+          "oklch(72.14% 0.01871 38.15)",
+          "oklch(83.57% 0.01871 38.15)",
+          "oklch(95.00% 0.01871 38.15)"
+        ]
+      },
+      "accent-foreground": {
+        "role": "primary",
+        "displayName": "Tomate profundo",
+        "tonalRamp": [
+          "oklch(15.00% 0.16262 31.93)",
+          "oklch(26.43% 0.16262 31.93)",
+          "oklch(37.86% 0.16262 31.93)",
+          "oklch(49.29% 0.16262 31.93)",
+          "oklch(60.71% 0.16262 31.93)",
+          "oklch(72.14% 0.16262 31.93)",
+          "oklch(83.57% 0.16262 31.93)",
+          "oklch(95.00% 0.16262 31.93)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Cinza de divisória",
+        "tonalRamp": [
+          "oklch(15.00% 0.00674 286.27)",
+          "oklch(26.43% 0.00674 286.27)",
+          "oklch(37.86% 0.00674 286.27)",
+          "oklch(49.29% 0.00674 286.27)",
+          "oklch(60.71% 0.00674 286.27)",
+          "oklch(72.14% 0.00674 286.27)",
+          "oklch(83.57% 0.00674 286.27)",
+          "oklch(95.00% 0.00674 286.27)"
+        ]
+      },
+      "input": {
+        "role": "neutral",
+        "displayName": "Cinza de campo",
+        "tonalRamp": [
+          "oklch(15.00% 0.00965 286.19)",
+          "oklch(26.43% 0.00965 286.19)",
+          "oklch(37.86% 0.00965 286.19)",
+          "oklch(49.29% 0.00965 286.19)",
+          "oklch(60.71% 0.00965 286.19)",
+          "oklch(72.14% 0.00965 286.19)",
+          "oklch(83.57% 0.00965 286.19)",
+          "oklch(95.00% 0.00965 286.19)"
+        ]
+      },
+      "sidebar-foreground": {
+        "role": "neutral",
+        "displayName": "Cinza de navegação",
+        "tonalRamp": [
+          "oklch(15.00% 0.01120 279.47)",
+          "oklch(26.43% 0.01120 279.47)",
+          "oklch(37.86% 0.01120 279.47)",
+          "oklch(49.29% 0.01120 279.47)",
+          "oklch(60.71% 0.01120 279.47)",
+          "oklch(72.14% 0.01120 279.47)",
+          "oklch(83.57% 0.01120 279.47)",
+          "oklch(95.00% 0.01120 279.47)"
+        ]
+      },
+      "stage": {
+        "role": "neutral",
+        "displayName": "Grafite de cena",
+        "tonalRamp": [
+          "oklch(15.00% 0.00737 285.89)",
+          "oklch(26.43% 0.00737 285.89)",
+          "oklch(37.86% 0.00737 285.89)",
+          "oklch(49.29% 0.00737 285.89)",
+          "oklch(60.71% 0.00737 285.89)",
+          "oklch(72.14% 0.00737 285.89)",
+          "oklch(83.57% 0.00737 285.89)",
+          "oklch(95.00% 0.00737 285.89)"
+        ]
+      },
+      "success": {
+        "displayName": "Verde de sucesso",
+        "tonalRamp": [
+          "oklch(15.00% 0.06760 157.93)",
+          "oklch(26.43% 0.06760 157.93)",
+          "oklch(37.86% 0.06760 157.93)",
+          "oklch(49.29% 0.06760 157.93)",
+          "oklch(60.71% 0.06760 157.93)",
+          "oklch(72.14% 0.06760 157.93)",
+          "oklch(83.57% 0.06760 157.93)",
+          "oklch(95.00% 0.06760 157.93)"
+        ]
+      },
+      "success-bg": {
+        "displayName": "Verde claro de estado",
+        "tonalRamp": [
+          "oklch(15.00% 0.01406 155.59)",
+          "oklch(26.43% 0.01406 155.59)",
+          "oklch(37.86% 0.01406 155.59)",
+          "oklch(49.29% 0.01406 155.59)",
+          "oklch(60.71% 0.01406 155.59)",
+          "oklch(72.14% 0.01406 155.59)",
+          "oklch(83.57% 0.01406 155.59)",
+          "oklch(95.00% 0.01406 155.59)"
+        ]
+      },
+      "warning": {
+        "displayName": "Âmbar de atenção",
+        "tonalRamp": [
+          "oklch(15.00% 0.09331 73.98)",
+          "oklch(26.43% 0.09331 73.98)",
+          "oklch(37.86% 0.09331 73.98)",
+          "oklch(49.29% 0.09331 73.98)",
+          "oklch(60.71% 0.09331 73.98)",
+          "oklch(72.14% 0.09331 73.98)",
+          "oklch(83.57% 0.09331 73.98)",
+          "oklch(95.00% 0.09331 73.98)"
+        ]
+      },
+      "warning-bg": {
+        "displayName": "Âmbar claro de estado",
+        "tonalRamp": [
+          "oklch(15.00% 0.03660 80.63)",
+          "oklch(26.43% 0.03660 80.63)",
+          "oklch(37.86% 0.03660 80.63)",
+          "oklch(49.29% 0.03660 80.63)",
+          "oklch(60.71% 0.03660 80.63)",
+          "oklch(72.14% 0.03660 80.63)",
+          "oklch(83.57% 0.03660 80.63)",
+          "oklch(95.00% 0.03660 80.63)"
+        ]
+      },
+      "error": {
+        "displayName": "Vermelho de erro",
+        "tonalRamp": [
+          "oklch(15.00% 0.15712 29.41)",
+          "oklch(26.43% 0.15712 29.41)",
+          "oklch(37.86% 0.15712 29.41)",
+          "oklch(49.29% 0.15712 29.41)",
+          "oklch(60.71% 0.15712 29.41)",
+          "oklch(72.14% 0.15712 29.41)",
+          "oklch(83.57% 0.15712 29.41)",
+          "oklch(95.00% 0.15712 29.41)"
+        ]
+      },
+      "error-bg": {
+        "displayName": "Vermelho claro de estado",
+        "tonalRamp": [
+          "oklch(15.00% 0.02590 29.42)",
+          "oklch(26.43% 0.02590 29.42)",
+          "oklch(37.86% 0.02590 29.42)",
+          "oklch(49.29% 0.02590 29.42)",
+          "oklch(60.71% 0.02590 29.42)",
+          "oklch(72.14% 0.02590 29.42)",
+          "oklch(83.57% 0.02590 29.42)",
+          "oklch(95.00% 0.02590 29.42)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Título da compra",
+        "purpose": "Título principal de compra; 38px no mobile."
+      },
+      "headline": {
+        "displayName": "Título de área",
+        "purpose": "Títulos gerais; 34px no mobile."
+      },
+      "title": {
+        "displayName": "Título de formulário",
+        "purpose": "Apresenta a intenção de compra."
+      },
+      "body": {
+        "displayName": "Corpo",
+        "purpose": "Descrições e conversa."
+      },
+      "label": {
+        "displayName": "Rótulo",
+        "purpose": "Identifica campos sem depender de placeholder."
+      }
+    },
+    "shadows": [
+      {
+        "name": "panel-ambient",
+        "value": "0 12px 40px -16px #1616211a",
+        "purpose": "Elevação ambiente dos painéis brancos."
+      },
+      {
+        "name": "ticket",
+        "value": "0 4px 12px #20212406",
+        "purpose": "Tickets sobre a superfície das etapas."
+      },
+      {
+        "name": "scene-photo",
+        "value": "0 28px 50px -20px #000b",
+        "purpose": "Fotografia elevada dentro da cena."
+      },
+      {
+        "name": "scene-composition",
+        "value": "0 12px 30px #0003",
+        "purpose": "Faixa em plano frontal da cena."
+      }
+    ],
     "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(.16,1,.3,1)",
+        "purpose": "Desaceleração das transições de posição."
+      },
       {
         "name": "interactive-color",
         "value": "160ms ease",
-        "purpose": "Transições cromáticas; desativadas com redução de movimento."
+        "purpose": "Cor, fundo e borda nos controles."
+      },
+      {
+        "name": "press",
+        "value": "180ms var(--ease-out)",
+        "purpose": "Pressão de botão com scale(.98)."
+      },
+      {
+        "name": "area-change",
+        "value": "280ms cubic-bezier(0.16,1,0.3,1)",
+        "purpose": "Entrada única por troca de área; não repete em atualização de dados."
+      },
+      {
+        "name": "scene-response",
+        "value": "600ms var(--ease-out)",
+        "purpose": "Acomodação dos planos após cursor ou rolagem."
+      },
+      {
+        "name": "scene-arrival",
+        "value": "750ms var(--ease-out)",
+        "purpose": "Entrada única com mouse fino e sem redução de movimento."
+      },
+      {
+        "name": "confirmation",
+        "value": "360ms var(--ease-out)",
+        "purpose": "Confirmação de compra; tickets usam 200ms."
       }
     ],
     "breakpoints": [
+      {
+        "name": "small-mobile-max",
+        "value": "360px"
+      },
       {
         "name": "mobile-max",
         "value": "767px"
       },
       {
         "name": "meal-stack-max",
-        "value": "970px"
+        "value": "1020px"
       },
       {
         "name": "compact-desktop-max",
@@ -30,34 +356,74 @@
       "name": "Autorizar compra",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "Ação explícita do formulário.",
+      "description": "Ação explícita após revisar composição, orçamento e prazo.",
       "html": "<button class=\"ds-authorize\">Autorizar compra e buscar refeição</button>",
-      "css": ".ds-authorize{background:var(--primary,#b9361e);color:var(--card,#fffdf9);border:0;border-radius:8px;padding:13px 16px;min-height:54px;font:600 15px/1.4 'DM Sans Variable',Arial,sans-serif;transition:background-color 160ms ease}.ds-authorize:focus-visible{outline:2px solid var(--primary,#b9361e);outline-offset:4px}.ds-authorize:active{translate:0 1px}.ds-authorize:disabled{opacity:.55}@media(prefers-reduced-motion:reduce){.ds-authorize{transition:none}}"
+      "css": ".ds-authorize{min-height:44px;min-width:44px;border-radius:10px;padding:8px 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 14px/1.5 'DM Sans Variable',Arial,sans-serif;cursor:pointer;transition:background-color 160ms ease,color 160ms ease,border-color 160ms ease,transform 180ms var(--ease-out,cubic-bezier(.16,1,.3,1));border:0;background:var(--primary,#bd351e);color:var(--primary-foreground,#fff);min-height:54px;padding:13px 16px;font-size:15px;line-height:1.4;white-space:normal;text-align:center}.ds-authorize:hover:not(:disabled){background:color-mix(in srgb,var(--primary,#bd351e) 90%,transparent)}.ds-authorize:focus-visible{outline:2px solid var(--primary,#bd351e);outline-offset:4px}.ds-authorize:not(:disabled):active{transform:scale(.98)}.ds-authorize:disabled{opacity:.55;cursor:not-allowed}@media(prefers-reduced-motion:reduce){.ds-authorize{transition:none}}"
+    },
+    {
+      "name": "Botão outline",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Ação secundária, como abrir a composição de um prato.",
+      "html": "<button class=\"ds-outline\">Ver composição</button>",
+      "css": ".ds-outline{min-height:44px;min-width:44px;border-radius:10px;padding:8px 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 14px/1.5 'DM Sans Variable',Arial,sans-serif;cursor:pointer;transition:background-color 160ms ease,color 160ms ease,border-color 160ms ease,transform 180ms var(--ease-out,cubic-bezier(.16,1,.3,1));border:1px solid var(--border,#e1e1e6);background:var(--background,#f5f5f7);color:var(--foreground,#202124);box-shadow:0 1px 2px 0 rgb(0 0 0 / .05)}.ds-outline:hover:not(:disabled){background:var(--accent,#fcece7);color:var(--accent-foreground,#a72c18)}.ds-outline:focus-visible{outline:2px solid var(--primary,#bd351e);outline-offset:4px}.ds-outline:not(:disabled):active{transform:scale(.98)}.ds-outline:disabled{opacity:.55;cursor:not-allowed}@media(prefers-reduced-motion:reduce){.ds-outline{transition:none}}"
+    },
+    {
+      "name": "Botão ghost",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Ação de apoio com superfície apenas no hover.",
+      "html": "<button class=\"ds-ghost\">Revisar ficha</button>",
+      "css": ".ds-ghost{min-height:44px;min-width:44px;border-radius:10px;padding:8px 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 14px/1.5 'DM Sans Variable',Arial,sans-serif;cursor:pointer;transition:background-color 160ms ease,color 160ms ease,border-color 160ms ease,transform 180ms var(--ease-out,cubic-bezier(.16,1,.3,1));border:0;background:transparent;color:var(--foreground,#202124)}.ds-ghost:hover:not(:disabled){background:var(--accent,#fcece7);color:var(--accent-foreground,#a72c18)}.ds-ghost:focus-visible{outline:2px solid var(--primary,#bd351e);outline-offset:4px}.ds-ghost:not(:disabled):active{transform:scale(.98)}.ds-ghost:disabled{opacity:.55;cursor:not-allowed}@media(prefers-reduced-motion:reduce){.ds-ghost{transition:none}}"
     },
     {
       "name": "Busca operacional",
       "kind": "input",
       "refersTo": "input",
-      "description": "Campo de busca de pedidos.",
-      "html": "<input class=\"ds-search\" aria-label=\"Buscar pedido\" placeholder=\"Prato ou código do pedido\">",
-      "css": ".ds-search{height:44px;background:var(--card,#fffdf9);color:var(--foreground,#342720);border:1px solid var(--input,#d7c7b5);border-radius:8px;padding:4px 12px;font:14px 'DM Sans Variable',Arial,sans-serif}.ds-search::placeholder{color:var(--muted-foreground,#756253)}.ds-search:focus-visible{outline:none;border-color:var(--primary,#b9361e);box-shadow:0 0 0 3px #b9361e80}@media(max-width:767px){.ds-search{min-height:46px;font-size:16px}}"
+      "description": "Busca por prato ou código de pedido; rótulo acessível permanece presente.",
+      "html": "<label class=\"ds-search-label\" for=\"ds-search\">Buscar pedido</label><input id=\"ds-search\" class=\"ds-search\" placeholder=\"Prato ou código do pedido\">",
+      "css": ".ds-search-label{display:block;margin-bottom:8px;color:var(--muted-foreground,#62636b);font:500 14px/1.5 'DM Sans Variable',Arial,sans-serif}.ds-search{width:100%;height:44px;padding:4px 12px;border:1px solid var(--input,#c9c9d0);border-radius:10px;background:var(--card,#fff);color:var(--foreground,#202124);font:14px/1.5 'DM Sans Variable',Arial,sans-serif;caret-color:var(--primary,#bd351e);box-shadow:none;transition:border-color 160ms ease,color 160ms ease}.ds-search::placeholder{color:#72737d}.ds-search:focus-visible{outline:none;border-color:var(--ring,#bd351e)}.ds-search:disabled{opacity:.5;cursor:not-allowed}@media(max-width:767px){.ds-search{min-height:46px;font-size:16px}}@media(prefers-reduced-motion:reduce){.ds-search{transition:none}}"
+    },
+    {
+      "name": "Navegação selecionada",
+      "kind": "nav",
+      "refersTo": "navigation-active",
+      "description": "Item ativo na sidebar desktop; o mobile usa pêssego e tomate.",
+      "html": "<nav aria-label=\"Cozinha\"><button class=\"ds-nav\" aria-current=\"page\">Pedidos<span class=\"ds-active-dot\" aria-hidden=\"true\"></span></button></nav>",
+      "css": ".ds-nav{display:flex;align-items:center;gap:12px;width:100%;min-height:46px;padding:12px 14px;border:0;border-radius:10px;background:var(--stage,#252529);color:var(--card,#fff);font:600 14px/1.5 'DM Sans Variable',Arial,sans-serif;cursor:pointer;transition:background-color 160ms ease}.ds-nav:hover{background:#36363c}.ds-nav:focus-visible{outline:2px solid var(--primary,#bd351e);outline-offset:4px}.ds-active-dot{margin-left:auto;width:5px;height:5px;border-radius:50%;background:#fff}@media(prefers-reduced-motion:reduce){.ds-nav{transition:none}}"
+    },
+    {
+      "name": "Tag de sucesso",
+      "kind": "chip",
+      "refersTo": "tag-success",
+      "description": "Estado informativo com texto, sem comportamento de botão.",
+      "html": "<span class=\"ds-tag\">Disponível para negociar</span>",
+      "css": ".ds-tag{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:6px;padding:6px 10px;background:var(--success-bg,#eaf4ed);color:var(--sage,#326147);font:550 12px/1.35 'DM Sans Variable',Arial,sans-serif;white-space:nowrap}"
     },
     {
       "name": "Painel de intenção",
       "kind": "card",
       "refersTo": "panel",
-      "description": "Recipiente do formulário de compra.",
-      "html": "<section class=\"ds-intent\"><h2>Vamos matar essa fome?</h2><p>Conte sua vontade. A Byara cuida da busca.</p></section>",
-      "css": ".ds-intent{background:var(--card,#fffdf9);color:var(--foreground,#342720);border:1px solid var(--border,#e5d9ca);border-top:3px solid var(--primary,#b9361e);border-radius:14px;padding:27px;box-shadow:none}.ds-intent h2{margin:0;font:550 26px/1.25 'Fraunces Variable',Georgia,serif;letter-spacing:-.5px}.ds-intent p{margin:7px 0 0;color:var(--muted-foreground,#756253);font:14px/1.5 'DM Sans Variable',Arial,sans-serif}"
+      "description": "Superfície branca do formulário com elevação ambiente suave.",
+      "html": "<section class=\"ds-intent\"><h2>Sua próxima refeição.</h2><p>Você escolhe os limites. A Byara negocia.</p></section>",
+      "css": ".ds-intent{background:var(--card,#fff);color:var(--foreground,#202124);border:0;border-radius:16px;padding:30px;box-shadow:var(--elevation,0 12px 40px -16px #1616211a)}.ds-intent h2{margin:0;font:650 26px/1.2 'DM Sans Variable',Arial,sans-serif;letter-spacing:-.03em;text-wrap:balance}.ds-intent p{margin:8px 0 0;color:var(--muted-foreground,#62636b);font:14px/1.5 'DM Sans Variable',Arial,sans-serif}@media(max-width:767px){.ds-intent{padding:24px 20px}}"
+    },
+    {
+      "name": "Limite com entrega",
+      "kind": "custom",
+      "description": "Orçamento com numerais tabulares e unidade legível; valor inicial existente na demonstração.",
+      "html": "<label class=\"ds-budget-label\" for=\"ds-budget\">Seu limite, com entrega</label><div class=\"ds-budget-wrap\"><input class=\"ds-budget\" id=\"ds-budget\" inputmode=\"decimal\" value=\"35,00\"><span>R$</span></div>",
+      "css": ".ds-budget-label{display:block;margin-bottom:8px;color:var(--muted-foreground,#62636b);font:500 14px/1.5 'DM Sans Variable',Arial,sans-serif}.ds-budget-wrap{position:relative}.ds-budget{width:100%;height:54px;padding:4px 66px 4px 12px;border:1px solid #e8b5a9;border-radius:10px;background:#fff7f4;color:var(--accent-foreground,#a72c18);font:600 23px/1.5 'DM Sans Variable',Arial,sans-serif;font-variant-numeric:tabular-nums;box-shadow:none;caret-color:var(--primary,#bd351e);transition:border-color 160ms ease}.ds-budget:focus-visible{outline:none;border-color:var(--ring,#bd351e)}.ds-budget-wrap>span{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--muted-foreground,#62636b);font:12px/1.5 'DM Sans Variable',Arial,sans-serif;pointer-events:none}.ds-budget:disabled{opacity:.5;cursor:not-allowed}@media(max-width:767px){.ds-budget{padding-right:47px}}@media(prefers-reduced-motion:reduce){.ds-budget{transition:none}}"
     }
   ],
   "narrative": {
-    "northStar": "Cardápio de cozinha brasileira",
-    "overview": "Cerâmica clara, tomate nas ações e açafrão nos destaques. Fotografia gastronômica aproxima a compra da comida; controles diretos sustentam a operação.",
+    "northStar": "Refeição com presença física; operação com clareza.",
+    "overview": "A inspiração Apple aparece nas superfícies claras, na tipografia sans forte e na profundidade contida. Tomate mantém a assinatura da i.byara; a fotografia gastronômica aproxima a refeição, enquanto controles diretos sustentam compra e serviço.\n\nA experiência continua sendo um aplicativo de trabalho. O movimento acompanha a intenção e as mudanças de estado, com conteúdo e controles disponíveis desde o primeiro desenho.",
     "keyCharacteristics": [
-      "Comida como conteúdo.",
-      "Títulos expressivos; controles legíveis.",
-      "Estados identificados por texto e cor."
+      "Branco e cinza frio com grafite estrutural e ações tomate.",
+      "DM Sans local em títulos, formulários e operação.",
+      "Profundidade fotográfica pontual; superfícies de trabalho leves.",
+      "Estados e limites compreensíveis por texto, além da cor."
     ],
     "rules": [
       {
@@ -67,19 +433,26 @@
       },
       {
         "name": "Controles claros",
-        "body": "Preserve sans nos controles e numerais tabulares nos valores.",
+        "body": "Preserve sans nos controles, unidades legíveis e numerais tabulares nos valores.",
         "section": "typography"
+      },
+      {
+        "name": "Movimento a serviço",
+        "body": "Movimento acompanha contexto e estado sem atrasar o uso dos controles.",
+        "section": "elevation"
       }
     ],
     "dos": [
-      "Preservar origem das imagens e contexto de demonstração.",
-      "Manter foco visível e respeitar redução de movimento.",
-      "Associar estados a texto compreensível."
+      "**Do** Preservar origem das imagens e contexto de demonstração.",
+      "**Do** Manter foco visível, alvos de toque de pelo menos 44px e redução de movimento.",
+      "**Do** Associar estados a texto compreensível e manter limites de compra próximos à autorização.",
+      "**Do** Usar os dados comerciais existentes, inclusive total com entrega."
     ],
     "donts": [
-      "Representar imagem ilustrativa como fotografia do produto vendido.",
-      "Transformar verde em acento predominante.",
-      "Herdar kickers decorativos como identidade."
+      "**Don't** Representar imagem ilustrativa como fotografia do produto vendido.",
+      "**Don't** Inventar avaliações, escassez ou preços para sustentar a apresentação.",
+      "**Don't** Transformar verde em acento predominante.",
+      "**Don't** Tornar a compreensão ou a autorização dependente de movimento, voz ou cor."
     ]
   }
 }

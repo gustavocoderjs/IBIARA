@@ -1,4 +1,4 @@
-# i.byara · release 0.3.0
+# i.byara · release 0.4.0
 
 Marketplace alimentício bilateral com agentes de restaurante e consumidor. Monólito modular executável para análise do produto e da implementação, **somente em sandbox**. O documento original está em `docs/IBYARA_GUIDE.md`.
 
@@ -115,3 +115,9 @@ pnpm design:audit
 O comando solicitado `npx impeccable install` foi executado; o download de impeccable.style falhou por DNS no ambiente de desenvolvimento. A instalação foi completada com a CLI do npm e os arquivos oficiais obtidos via conexão GitHub, preservados byte a byte. Hooks automáticos não foram ativados; use a auditoria manual acima. Em outra máquina com rede liberada, `npx impeccable install --providers=codex,github --scope=project` permite gerenciar a instalação pelo assistente oficial.
 
 Validação desta revisão e limitações: `docs/evidence/VALIDATION-0.3.0.md`. Origem das imagens: `docs/IMAGE_ASSETS.md`.
+
+## Interface 0.4.0
+
+Revisão visual inspirada na referência Apple indicada pelo usuário: superfícies claras, grafite, tipografia sans e tomate nas ações. O prato usa planos fotográficos em perspectiva CSS 3D, reagindo ao cursor e à rolagem; a navegação tem transições curtas. Não há modelo 3D/WebGL nem novas dependências. No toque e com redução de movimento, a apresentação é estática.
+
+Funções, autorizações e integrações da demonstração permanecem. Veja `docs/design/MOTION.md`, `DESIGN.md` e `docs/evidence/VALIDATION-0.4.0.md`.

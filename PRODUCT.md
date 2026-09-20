@@ -24,7 +24,7 @@ Conversa para montar fichas, estoque, políticas versionadas, compras, mandato p
 
 ## Brand Commitments
 
-Nome i.byara, assistente Byara. Linguagem direta e acolhedora. O feedback de 19/09/2026 pede substituir o visual predominantemente verde por uma experiência viva e apetitosa que desperte vontade de comprar. A identidade visual pode mudar; funções, preços e limites comerciais continuam verdadeiros.
+Nome i.byara, assistente Byara. Linguagem direta e acolhedora. O feedback de 19/09/2026 pede substituir o visual predominantemente verde por uma experiência viva e apetitosa que desperte vontade de comprar. A identidade visual pode mudar; funções, preços e limites comerciais continuam verdadeiros. Em 20/09/2026, o usuário pediu inspiração no site da Apple, animação e profundidade 3D: essa referência orienta a revisão 0.4.0, mantendo o apelo gastronômico e a operação rápida.
 
 ## Evidence on Hand
 

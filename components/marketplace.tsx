@@ -1,11 +1,12 @@
 'use client';
 import { useRef, useState, type FormEvent } from 'react';
-import { Activity, AlertCircle, ArrowRight, Check, Clock, Loader2, LockKeyhole, MapPin, Radio, ShieldCheck } from 'lucide-react';
+import { Activity, AlertCircle, ArrowRight, Check, Clock, Loader2, LockKeyhole, MapPin, Radio, ShieldCheck, UtensilsCrossed } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DishPhoto } from '@/components/dish-photo';
+import { MealScene } from '@/components/motion-surface';
 import { money, cents } from '@/lib/domain/money';
 import { shortTime as time } from '@/lib/client/format';
 import type { Send, ViewState } from '@/lib/client/workspace-types';
@@ -49,13 +50,13 @@ export function Market({ data, send, busy }: {
     return <>
       <div className="meal-experience">
         <section className="meal-feature" aria-label="Inspiração para sua refeição">
-          <div className="meal-picture"><DishPhoto priority className="meal-hero"/><span className="meal-stamp">Bom de<br/><em>verdade.</em></span></div>
-          <div className="meal-story"><h2>Bife a cavalo.<br/><em>Vontade de repetir.</em></h2><p>Arroz soltinho, feijão e batata dourada. Aquela combinação que faz a pausa do dia valer a pena.</p><a className="meal-jump" href="#refeicao">Montar meu pedido <ArrowRight size={17}/></a><div className="meal-ingredients"><span>Bife + ovo</span><span>Arroz e feijão</span><span>Batatas</span></div></div>
+          <MealScene/>
+          <div className="meal-story"><h2>A vontade é sua.<br/><em>A busca é com a Byara.</em></h2><p>Uma refeição, do seu jeito. Conte o que você quer e até quanto quer gastar, já com a entrega.</p><a className="meal-jump" href="#refeicao">Montar meu pedido <ArrowRight size={17}/></a></div>
           <div className="meal-promise"><LockKeyhole size={19}/><p><strong>A vontade é sua. O limite também.</strong><span>A Byara negocia uma refeição com a composição, o total e o prazo que você autorizar.</span></p></div>
         </section>
         <div className="meal-request">
           <form id="refeicao" className="panel intent-panel" onSubmit={purchase}>
-            <div className="intent-heading"><h2>Vamos matar essa fome?</h2><p>Conte sua vontade. A Byara cuida da busca.</p></div>
+            <div className="intent-heading"><span className="intent-symbol"><UtensilsCrossed size={22}/></span><h2>Sua próxima refeição.</h2><p>Você escolhe os limites. A Byara negocia.</p></div>
             <label className="field-label" htmlFor="meal-intent">O que você quer comer?</label>
             <Textarea id="meal-intent" disabled={resumable || !!phase} rows={3} value={description} onChange={e => setDescription(e.target.value)} placeholder="Uma refeição brasileira com…"/>
             <div className="intent-fields"><div><label className="field-label" htmlFor="budget">Seu limite, com entrega</label><div className="unit-input budget-input"><Input id="budget" disabled={resumable || !!phase} inputMode="decimal" value={budget} onChange={e => setBudget(e.target.value)}/><span>R$</span></div></div><div><label className="field-label" htmlFor="minutes">Prazo máximo</label><div className="unit-input"><Input id="minutes" disabled={resumable || !!phase} inputMode="numeric" value={minutes} onChange={e => setMinutes(e.target.value)}/><span>min</span></div></div></div>
