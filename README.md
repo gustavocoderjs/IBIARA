@@ -106,6 +106,21 @@ O opt-in `--live` faz quatro chamadas ao provedor, cria um pedido sandbox em um
 operador descartável e verifica reserva, persistência, repetição e reset. Pode consumir
 a quota da NeuraLake. Nunca utiliza pagamento real.
 
+Para testar ambiguidades, mudanças de ideia e respostas indevidas do modelo:
+
+```sh
+# Sem rede: respostas controladas para testar as proteções do backend.
+node --experimental-strip-types --experimental-transform-types scripts/verify-adversarial-guards.ts
+# Worker local em modo live: conversas sintéticas, sem autorizar compras.
+node scripts/verify-adversarial-conversation.mjs --live
+```
+
+Os diagnósticos salvam evidências em `outputs/` e retornam código 1 quando encontram
+falhas. As chamadas reais usam operadores separados no banco local e consomem quota
+do provedor. Veja os resultados e limitações na
+[validação disruptiva](docs/evidence/VALIDATION-ADVERSARIAL.md); aprovação dos testes
+unitários existentes não significa que o atendimento livre está validado.
+
 ## Primeira avaliação
 
 1. Abra a conversa vazia do cliente e envie **Quais pratos posso pedir?** O primeiro turno válido prepara o mercado simulado; nenhum pedido é criado.
