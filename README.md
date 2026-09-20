@@ -67,10 +67,10 @@ Para entrar diretamente no cenário completo, **Ou carregar a cozinha pronta** c
 
 | Área | Estado |
 |---|---|
-| NeuraLake | Mock local baseado em gramática; nenhuma chamada a LLM; adapter e TODOs explícitos |
-| Agora | Adapter mock que falha explicitamente; ditado/leitura do navegador opcionais |
-| Cross Memory | Desativada e não validada |
-| QR fiscal | Não conectado; links são rejeitados, nunca buscados automaticamente |
+| NeuraLake | Mock local baseado em gramática; conectado |
+| Agora | Não conectado |
+| Cross Memory | Desativada |
+| QR fiscal | Não conectado |
 | Restaurantes, preços de insumos, taxas, elegibilidade e validades iniciais | Fixtures fictícias |
 | Pagamento/entrega | Nenhuma movimentação financeira ou entrega real |
 | Autenticação | Private Sites + identidade encaminhada; operador pode alternar os dois personagens da própria demo |
