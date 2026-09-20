@@ -107,7 +107,7 @@ export function accept(s: State, offerId: string, quoteToken: string, at: string
     event(s, 'ORDER_CONFIRMED', 'both', 'Pedido confirmado em sandbox', `${o.dish} · ${money(o.totalCents)}. Nenhum pagamento real foi realizado.`, rfq.id, at, r.id);
     return { orderId: order.id };
 }
-export function negotiate(s: State, rfqId: string, at: string) {
+export function negotiate(s: State, rfqId: string, at: string, proposalOnly = false) {
     const rfq = s.rfqs.find(r => r.id === rfqId);
     demand(rfq, 'RFQ_NOT_FOUND', 'Busca não encontrada.');
     if (rfq.status === 'CLOSED') {
@@ -135,6 +135,15 @@ export function negotiate(s: State, rfqId: string, at: string) {
     const eligible = s.offers.filter(o => o.rfqId === rfq.id && o.status === 'ISSUED' && o.expiresAt > at && o.totalCents <= m.maxCents - m.committedCents && o.eta <= m.maxMinutes).sort((a, b) => a.totalCents - b.totalCents || a.eta - b.eta || a.merchantId.localeCompare(b.merchantId));
     for (const o of eligible) {
         try {
+            if (proposalOnly) {
+                const restaurant = s.restaurants.find(r => r.id === o.merchantId)!;
+                demand(freeCapacity(s, restaurant) > 0, 'CAPACITY_UNAVAILABLE', 'A cozinha está sem capacidade.');
+                const recipe = restaurant.recipes.find(r => r.id === o.recipeId && r.version === o.recipeVersion)!;
+                available(restaurant, recipe, at);
+                // Same ranking and negotiation; no reservation or budget commitment.
+                // accept revalidates this exact quote after the human decision.
+                return { status: 'AWAITING_APPROVAL', offerId: o.id };
+            }
             return accept(s, o.id, o.quoteToken, at);
         }
         catch (e) {

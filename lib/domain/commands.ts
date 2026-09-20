@@ -28,7 +28,7 @@ export const commandSchema = z.discriminatedUnion('type', [
     z.object({ type: z.literal('mandate'), scope: z.literal('buyer'), maxCents: integer.min(1).max(1000000), description: str, maxMinutes: integer.min(1).max(180), zone: z.enum(['demo_butanta', 'other']), excluded: z.array(z.string().max(100)).max(20), confirmed: z.literal(true) }).strict(),
     z.object({ type: z.literal('revoke'), scope: z.literal('buyer'), mandateId: str }).strict(),
     z.object({ type: z.literal('rfq'), scope: z.literal('buyer'), mandateId: str }).strict(),
-    z.object({ type: z.literal('negotiate'), scope: z.literal('buyer'), rfqId: str }).strict(),
+    z.object({ type: z.literal('negotiate'), scope: z.literal('buyer'), rfqId: str, proposalOnly: z.boolean().optional() }).strict(),
     z.object({ type: z.literal('counter'), scope: z.literal('buyer'), offerId: str, subtotalCents: integer.min(1).max(1000000) }).strict(),
     z.object({ type: z.literal('accept'), scope: z.literal('buyer'), offerId: str, quoteToken: str }).strict(),
     z.object({ type: z.literal('order'), scope, orderId: str, action: z.enum(['prepare', 'ready', 'cancel']) }).strict(),
@@ -244,7 +244,7 @@ export function execute(s: State, c: Command, at: string): unknown {
             return {};
         }
         case 'rfq': return createRfq(s, c.mandateId, at);
-        case 'negotiate': return negotiate(s, c.rfqId, at);
+        case 'negotiate': return negotiate(s, c.rfqId, at, c.proposalOnly);
         case 'counter': return { offerId: counter(s, c.offerId, c.subtotalCents, at).id };
         case 'accept': return accept(s, c.offerId, c.quoteToken, at);
         case 'order': return orderAction(s, c.orderId, c.action, at, c.scope);
