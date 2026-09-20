@@ -31,7 +31,8 @@ export class NeuraLakeChat implements ChatProvider {
                 method: 'POST', redirect: 'manual', signal: abort.signal,
                 headers: { Authorization: `Bearer ${this.config.apiKey}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ model: this.config.model, messages, temperature: 0.2,
-                    max_tokens: this.config.maxTokens, stream: false }),
+                    max_tokens: this.config.maxTokens, stream: false,
+                    response_format: { type: 'json_object' } }),
             });
             if (!response.ok) {
                 await response.body?.cancel();
@@ -57,7 +58,7 @@ export class NeuraLakeChat implements ChatProvider {
             } finally { reader.releaseLock(); }
             const parsed = responseSchema.safeParse(JSON.parse(text));
             if (!parsed.success || parsed.data.choices[0].finish_reason === 'length')
-                throw new DomainError('PROVIDER_INVALID_OUTPUT', 'A resposta ficou incompleta. Tente reformular.', 502);
+                throw new DomainError('PROVIDER_INVALID_OUTPUT', 'A IA retornou uma resposta incompleta. Seus dados foram mantidos; tente enviar novamente.', 502);
             return { content: parsed.data.choices[0].message.content, usage: {
                 mode: 'NEURALAKE', model: parsed.data.model ?? null,
                 tokens: parsed.data.usage?.total_tokens ?? null, cost: null,

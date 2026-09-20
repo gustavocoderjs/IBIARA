@@ -25,7 +25,7 @@ export const commandSchema = z.discriminatedUnion('type', [
     z.object({ type: z.literal('eligibility'), scope: z.literal('merchant'), item: str, eligible: z.boolean() }).strict(),
     z.object({ type: z.literal('schedule'), scope: z.literal('merchant'), days: integer.min(1).max(30), hour: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/) }).strict(),
     z.object({ type: z.literal('tick'), scope: z.literal('merchant'), days: integer.min(0).max(7) }).strict(),
-    z.object({ type: z.literal('mandate'), scope: z.literal('buyer'), maxCents: integer.min(1).max(1000000), description: str, maxMinutes: integer.min(1).max(180), zone: z.enum(['demo_butanta', 'other']), excluded: z.array(z.string().max(100)).max(20), confirmed: z.literal(true) }).strict(),
+    z.object({ type: z.literal('mandate'), scope: z.literal('buyer'), maxCents: integer.min(1).max(1000000), description: str, maxMinutes: integer.min(1).max(180), selectionPreference: z.enum(['LOWEST_PRICE', 'BEST_RATED']).optional(), zone: z.enum(['demo_butanta', 'other']), excluded: z.array(z.string().max(100)).max(20), confirmed: z.literal(true) }).strict(),
     z.object({ type: z.literal('revoke'), scope: z.literal('buyer'), mandateId: str }).strict(),
     z.object({ type: z.literal('rfq'), scope: z.literal('buyer'), mandateId: str }).strict(),
     z.object({ type: z.literal('negotiate'), scope: z.literal('buyer'), rfqId: str }).strict(),
@@ -229,10 +229,10 @@ export function execute(s: State, c: Command, at: string): unknown {
             return { clockOffset: s.clockOffset };
         case 'mandate': {
             const excluded = c.excluded.map(x => identify(x)?.id ?? normalize(x));
-            const m = { id: uid('mandate'), maxCents: c.maxCents, committedCents: 0, used: 0, maxUses: 1, expiresAt: new Date(Date.parse(at) + 15 * 60000).toISOString(), revoked: false, description: c.description, maxMinutes: c.maxMinutes, zone: c.zone, excluded, confirmedAt: at };
+            const m = { id: uid('mandate'), maxCents: c.maxCents, committedCents: 0, used: 0, maxUses: 1, expiresAt: new Date(Date.parse(at) + 15 * 60000).toISOString(), revoked: false, description: c.description, maxMinutes: c.maxMinutes, selectionPreference: c.selectionPreference ?? 'LOWEST_PRICE', zone: c.zone, excluded, confirmedAt: at };
             s.mandates.push(m);
             say(s, 'buyer', c.description, at, 'user');
-            say(s, 'buyer', `Autorização registrada: uma compra de até ${money(c.maxCents)}, já com entrega, em até ${c.maxMinutes} minutos. Seu teto não será compartilhado com os restaurantes.`, at);
+            say(s, 'buyer', `Autorização registrada: uma compra de até ${money(c.maxCents)}, já com entrega, em até ${c.maxMinutes} minutos. Prioridade: ${m.selectionPreference === 'BEST_RATED' ? 'melhor avaliação, mesmo com maior espera dentro desse prazo' : 'menor preço'}. Seu teto não será compartilhado com os restaurantes.`, at);
             event(s, 'MANDATE_CONFIRMED', 'buyer', 'Compra autorizada', 'Uma compra em sandbox · autorização válida por 15 minutos.', m.id, at);
             return { mandateId: m.id };
         }

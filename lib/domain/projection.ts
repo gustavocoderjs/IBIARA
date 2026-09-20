@@ -2,11 +2,12 @@ import { type State, type Role, DomainError } from './types.ts';
 import { quote } from './pricing.ts';
 import { pending, suggested, providerCapabilities } from '../adapters/neuralake.ts';
 import { agoraCapabilities } from '../adapters/agora.ts';
+import { publicRating } from './ratings.ts';
 export function visibleEvents(s: State, role: Role) { return s.events.filter(e => (e.role === 'both' || e.role === role) && (role !== 'merchant' || !e.merchantId || e.merchantId === 'niko')); }
 export function project(s: State, role: Role, at: string) {
     const common = { version: '0.3.0', mode: 'SANDBOX', role, now: at, sequence: s.sequence, events: visibleEvents(s, role).slice(-120), integrations: { neuralake: providerCapabilities, agora: agoraCapabilities, fiscal: { mode: 'XML_UPLOAD', qrConnected: false }, execution: { mode: 'SANDBOX', paymentReal: false, deliveryReal: false } }, telemetry: { llmCalls: s.inference?.committedCalls ?? 0, callsScope: 'successfully_committed_only', tokens: s.inference && s.inference.unknownTokenCalls === 0 ? s.inference.knownTokens : null, inferenceCost: null, priceEngine: 'EXACT_RATIONAL', protocol: 'ibyara.exchange.v1' }, clockOffset: s.clockOffset };
     if (role === 'buyer')
-        return { ...common, conversation: s.buyerConversation, mandates: s.mandates, rfqs: s.rfqs.map(q => ({ ...q })), offers: s.offers.map(({ receipt, requirements, ...o }) => o), orders: s.orders.map(({ requirements, ...o }) => o), restaurants: s.restaurants.map(r => ({ id: r.id, name: r.name, eta: r.eta, fictional: r.fictional, zone: r.zone })) };
+        return { ...common, conversation: s.buyerConversation, mandates: s.mandates.map(m => ({ ...m, selectionPreference: m.selectionPreference ?? 'LOWEST_PRICE' })), rfqs: s.rfqs.map(q => ({ ...q })), offers: s.offers.map(({ receipt, requirements, ...o }) => ({ ...o, ...publicRating(o.merchantId, o) })), orders: s.orders.map(({ requirements, ...o }) => o), restaurants: s.restaurants.map(r => ({ id: r.id, name: r.name, eta: r.eta, fictional: r.fictional, zone: r.zone, ...publicRating(r.id, r) })) };
     const r = s.restaurants[0];
     const active = r.recipes.filter(x => !r.recipes.some(y => y.id === x.id && y.version > x.version));
     const recipes = active.map(recipe => { try {

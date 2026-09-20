@@ -1,4 +1,5 @@
 import { type State, type Restaurant, type Policy, type Recipe, type Stock, uid } from './types.ts';
+import { publicRating } from './ratings.ts';
 export const catalog = [
     { id: 'patinho', name: 'Patinho', unit: 'g', basis: 'RAW_EDIBLE', aliases: ['patinho', 'bife', 'bifes', 'carne', 'carne bovina'] },
     { id: 'frango', name: 'Frango', unit: 'g', basis: 'RAW_EDIBLE', aliases: ['frango'] },
@@ -37,7 +38,7 @@ export function stockCatalog(at: string, seeded = false): Stock[] {
             expiresAt: new Date(Date.parse(at) + 30 * 86400000).toISOString(), surplus: seeded && i.id === 'patinho' };
     });
 }
-export function restaurant(id: string, at: string, seeded = false): Restaurant { return { id, name: seeded ? (id === 'casa' ? 'Sabor de Casa' : 'Cozinha Expressa') : 'Sua cozinha', address: seeded ? 'Endereço fictício · Butantã' : '', zone: 'demo_butanta', eta: id === 'casa' ? 30 : 25, deliveryCents: id === 'panela' ? 490 : 390, fictional: true, recipes: seeded ? [baseRecipe(at)] : [], stock: stockCatalog(at, seeded), policy: seeded ? { ...demoPolicy(at), referenceCents: id === 'casa' ? 3690 : 3790, maxDiscountBps: 1000, objective: 'BALANCED' } : null, policyHistory: [], receiptHistory: [], conversation: [], draft: null, stage: 'START' }; }
+export function restaurant(id: string, at: string, seeded = false): Restaurant { return { id, name: seeded ? (id === 'casa' ? 'Sabor de Casa' : 'Cozinha Expressa') : 'Sua cozinha', address: seeded ? 'Endereço fictício · Butantã' : '', zone: 'demo_butanta', eta: id === 'casa' ? 30 : 25, deliveryCents: id === 'panela' ? 490 : 390, fictional: true, ...publicRating(id), recipes: seeded ? [baseRecipe(at)] : [], stock: stockCatalog(at, seeded), policy: seeded ? { ...demoPolicy(at), referenceCents: id === 'casa' ? 3690 : 3790, maxDiscountBps: 1000, objective: 'BALANCED' } : null, policyHistory: [], receiptHistory: [], conversation: [], draft: null, stage: 'START' }; }
 export function nextCount(at: string, days: number, hour: string) { const sp = new Date(Date.parse(at) - 3 * 3600000); const [h, m] = hour.split(':').map(Number); return new Date(Date.UTC(sp.getUTCFullYear(), sp.getUTCMonth(), sp.getUTCDate() + days, h + 3, m)).toISOString(); }
 export function initialState(ownerId: string, at: string): State { const s: State = { version: 1, ownerId, restaurants: [restaurant('niko', at), restaurant('casa', at, true), restaurant('panela', at, true)], buyerConversation: [], mandates: [], rfqs: [], offers: [], orders: [], events: [], purchases: [], count: null, schedule: { days: 3, hour: '09:00', timeZone: 'America/Sao_Paulo', nextAt: nextCount(at, 3, '09:00'), lastFiredAt: null }, clockOffset: 0, idempotency: {}, sequence: 0 }; s.restaurants[0].conversation.push({ id: uid('turn'), role: 'assistant', text: 'Oi, eu sou a Byara. Vamos colocar sua cozinha no mapa? Me conte o nome do restaurante e onde ele fica.', at, mode: 'LOCAL_MOCK' }); return s; }
 export const DEMO_TURNS = [

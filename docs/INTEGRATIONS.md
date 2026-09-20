@@ -9,7 +9,9 @@ O adapter de receita e o Agora abaixo permanecem mocks. Ver `docs/MVP-FOUNDATION
 Implementação adicionada em `lib/agents/shared/neuralake.ts`, baseada no contrato
 chat completions fornecido nos quatro exemplos. System próprio por agente; sem
 histórico de exemplo, Cross Memory, native tools ou response_format presumidos.
-Uma chamada por decisão, timeout 15 s, 512 tokens máximos, JSON validado por Zod.
+Uma chamada por decisão, timeout 15 s por chamada, 512 tokens máximos e JSON validado
+por Zod. O comprador pode fazer uma segunda tentativa para corrigir JSON/schema
+inválido, dentro da quota. Ambas são contabilizadas quando o turno é persistido.
 Credenciais separadas: CUSTOMER, NIKO, CASA, PANELA. O fallback NEURALAKE_API_KEY
 vale somente para o comprador. Respostas de erro do provedor nunca vão ao cliente.
 Tokens/modelo ausentes são null; custo não é inventado. Contadores persistidos contam
@@ -53,6 +55,12 @@ um ingrediente; não é um interpretador universal de cardápios.
 `docs/evidence/VALIDATION-AGENTS.md` conserva a evidência histórica de 40 testes com
 mocks. A execução real desta rodada deve ser registrada separadamente, com o
 ambiente efetivamente testado e suas limitações.
+
+Validação adicional em 20/09/2026: a NeuraLake aceitou `response_format: {type:
+"json_object"}` com HTTP 200; o adapter usa esse formato e continua validando schema
+estrito. O diálogo de oito turnos passou sem reparo, incluindo alteração da região
+e dos critérios de seleção. Isso não é garantia universal de formato ou semântica
+do provedor. Detalhes: `docs/evidence/VALIDATION-CONVERSATION.md`.
 
 ## Agora
 

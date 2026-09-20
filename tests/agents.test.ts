@@ -123,6 +123,37 @@ test('concurrent customer turns cannot overwrite a newer conversation', async ()
     assert.equal((await store.read('one'))!.state.customerAgent!.version, 1);
 });
 
+test('one format repair validates the same contract, counts both calls and cannot authorize a purchase', async () => {
+    const store = new Store(); let calls = 0;
+    const provider: ChatProvider = { async complete(messages) {
+        calls++;
+        if (calls === 2) assert.equal(messages.at(-1)!.role, 'system');
+        return { content: calls === 1 ? 'Resposta fora do JSON' : JSON.stringify({ tool: 'propose_request', patch }),
+            usage: { mode: 'NEURALAKE', model: 'test', tokens: 7, cost: null } };
+    } };
+    const input = { message: 'uma refeição até 35 reais', expectedVersion: 0 };
+    await customerTurn(store, 'repair', input, 'repair-key', 'repair-digest', provider);
+    const state = (await store.read('repair'))!.state;
+    assert.equal(calls, 2); assert.equal(state.customerAgent!.calls, 2);
+    assert.equal(state.inference!.committedCalls, 2); assert.equal(state.inference!.knownTokens, 14);
+    assert.equal(state.mandates.length, 0); assert.equal(state.orders.length, 0);
+    assert.equal((await customerTurn(store, 'repair', input, 'repair-key', 'repair-digest', provider)).replayed, true);
+    assert.equal(calls, 2);
+});
+
+test('failed format repair is bounded, preserves the draft and never admits financial fields', async () => {
+    const store = new Store(); await store.insert('repair-failure', initialState('repair-failure', new Date().toISOString()));
+    const before = await store.read('repair-failure'); let calls = 0;
+    const provider = fake({ tool: 'consult_menu', patch: { confirmed: true, totalCents: 1 } }, () => { calls++; });
+    await assert.rejects(customerTurn(store, 'repair-failure', { message: 'cardápio', expectedVersion: 0 },
+        'failure-key', 'failure-digest', provider), rejects('PROVIDER_INVALID_OUTPUT'));
+    assert.equal(calls, 2); assert.deepEqual(await store.read('repair-failure'), before);
+    calls = 0;
+    await assert.rejects(customerTurn(store, 'repair-failure', { message: 'cardápio', expectedVersion: 0 },
+        'quota-key', 'quota-digest', provider, 1), rejects('PROVIDER_INVALID_OUTPUT'));
+    assert.equal(calls, 1, 'Repair cannot exceed the remaining inference budget.');
+});
+
 test('unsupported portion/zone and allergies cannot be silently converted to supported intent', () => {
     const draft = { ...emptyCustomerSession().draft, ...patch, zone: 'demo_butanta' as const };
     assert.equal(draftReadiness({ ...draft, portions: 2 }).ready, false);
@@ -151,6 +182,7 @@ test('NeuraLake sends bounded server-side request and preserves unknown usage', 
         assert.equal(url, 'https://api.neuralake.cloud/v1/chat/completions');
         const body = JSON.parse(String(init!.body));
         assert.equal(body.stream, false); assert.equal(body.max_tokens, 512);
+        assert.deepEqual(body.response_format, { type: 'json_object' });
         assert.equal(body.messages[0].role, 'system'); assert.equal(init!.redirect, 'manual');
         assert.equal('tools' in body, false); assert.equal('memory_id' in body, false);
         return Response.json({ choices: [{ message: { content: '{}' }, finish_reason: 'stop' }] });

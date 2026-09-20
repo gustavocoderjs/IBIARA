@@ -1,5 +1,6 @@
 import type { CustomerSession } from '../agents/customer/schemas.ts';
 export type Role = 'merchant' | 'buyer';
+export type SelectionPreference = 'LOWEST_PRICE' | 'BEST_RATED';
 export type Basis = 'AS_PURCHASED' | 'RAW_EDIBLE' | 'COOKED_EDIBLE';
 export type Component = {
     item: string;
@@ -61,6 +62,9 @@ export type Restaurant = {
     eta: number;
     deliveryCents: number;
     fictional: boolean;
+    ratingTenths?: number | null;
+    ratingCount?: number;
+    ratingIsDemo?: boolean;
     recipes: Recipe[];
     stock: Stock[];
     policy: Policy | null;
@@ -116,6 +120,9 @@ export type Offer = {
     rfqId: string;
     merchantId: string;
     merchantName: string;
+    ratingTenths?: number | null;
+    ratingCount?: number;
+    ratingIsDemo?: boolean;
     recipeId: string;
     recipeVersion: number;
     dish: string;
@@ -146,6 +153,7 @@ export type Mandate = {
     revoked: boolean;
     description: string;
     maxMinutes: number;
+    selectionPreference?: SelectionPreference;
     zone: string;
     excluded: string[];
     confirmedAt: string;

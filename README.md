@@ -149,6 +149,13 @@ identifica a contingência local e orienta o preenchimento manual; ela não fing
 
 ## Arquitetura e revisão
 
+O comprador pode priorizar **menor preço** ou **melhor avaliação**, pela conversa ou
+na revisão. Notas e contagens são simuladas e identificadas na interface. Maior nota
+pode vencer com maior espera/preço, sempre dentro dos limites autorizados. Evidências
+dos 69 testes, conversa real e compra por avaliação: [validação](docs/evidence/VALIDATION-CONVERSATION.md).
+Para verificar a interface sem mexer na conversa local habitual, use
+`node scripts/preview-demo.mjs --isolated` (porta 5174, Worker na 4173).
+
 - `lib/domain`: modelos, aritmética, preço, orquestração comercial, comandos e transações.
 - `lib/domain/demo-market.ts`: preparação idempotente dos cardápios/estoques; `meal-intent.ts`: vocabulário conservador que rejeita termos fora do catálogo.
 - `lib/agents`: conversa e cardápio público do cliente, três contextos de restaurante, schemas, roteador e transporte NeuraLake.

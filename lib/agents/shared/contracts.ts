@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { RFQ, Offer, Recipe, Stock } from '../../domain/types.ts';
+import { publicRating } from '../../domain/ratings.ts';
 
 const id = z.string().min(1).max(100);
 const money = z.number().int().safe().nonnegative();
@@ -19,6 +20,8 @@ export const restaurantOfferSchema = z.object({
     recipeId: id, recipeVersion: z.number().int().positive(), dish: z.string().min(1).max(200),
     composition: z.array(z.string().max(200)).max(30), quantity: z.literal(1),
     price: priceQuoteSchema, etaMinutes: z.number().int().positive(),
+    ratingTenths: z.number().int().min(0).max(50).nullable(),
+    ratingCount: z.number().int().safe().nonnegative(), ratingIsDemo: z.boolean(),
     expiresAt: z.string().datetime(), executionMode: z.literal('SANDBOX'),
 }).strict();
 export type RestaurantRequest = z.infer<typeof restaurantRequestSchema>;
@@ -38,5 +41,5 @@ export function toRestaurantOffer(o: Offer): RestaurantOffer {
         recipeVersion: o.recipeVersion, dish: o.dish, composition: o.composition,
         quantity: 1, price: { subtotalCents: o.subtotalCents, deliveryCents: o.deliveryCents,
             buyerFeeCents: o.buyerFeeCents, totalCents: o.totalCents },
-        etaMinutes: o.eta, expiresAt: o.expiresAt, executionMode: 'SANDBOX' });
+        etaMinutes: o.eta, ...publicRating(o.merchantId, o), expiresAt: o.expiresAt, executionMode: 'SANDBOX' });
 }

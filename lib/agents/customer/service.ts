@@ -2,12 +2,13 @@ import { getState, type AggregateStore } from '../../domain/transaction.ts';
 import { DomainError, event, nowIso } from '../../domain/types.ts';
 import type { ChatProvider, ChatMessage } from '../shared/neuralake.ts';
 import { CUSTOMER_SYSTEM_PROMPT } from './prompt.ts';
-import { agentDecisionSchema, type CustomerTurn } from './schemas.ts';
+import type { CustomerTurn } from './schemas.ts';
 import { emptyCustomerSession } from './state.ts';
 import { draftReadiness, runCustomerTool } from './tools.ts';
 import { recordUsage } from '../shared/telemetry.ts';
 import { ensureDemoMarket } from '../../domain/demo-market.ts';
 import { publicMenu } from './menu.ts';
+import { customerDecision } from './decision.ts';
 
 export async function customerTurn(store: AggregateStore, owner: string, input: CustomerTurn,
     key: string, digest: string, provider: ChatProvider, maxCalls = 24) {
@@ -35,30 +36,32 @@ export async function customerTurn(store: AggregateStore, owner: string, input: 
     // Initialize only in response to a person's message, never on page load or an LLM tool.
     // Persist only with a valid turn; a provider failure keeps the previous workspace intact.
     ensureDemoMarket(state, at);
+    const lastAssistantText = session.turns.findLast(turn => turn.role === 'assistant')?.text;
+    const activeRfq = state.rfqs.findLast(q => ['OPEN', 'QUOTED'].includes(q.status) && q.expiresAt > at);
     const messages: ChatMessage[] = [
         { role: 'system', content: CUSTOMER_SYSTEM_PROMPT },
-        { role: 'user', content: `Contexto não confirmado do comprador: ${JSON.stringify(session.draft)}` },
-        { role: 'user', content: `Cardápio público simulado (não é uma oferta reservada): ${JSON.stringify(publicMenu(state, at))}` },
-        ...session.turns.slice(-8).map(t => ({ role: t.role, content: t.text })),
-        { role: 'user', content: input.message },
+        // Backend replies are data, not model assistant outputs to imitate. Keep the
+        // current input separate so region/budget corrections do not re-extract a dish.
+        { role: 'user', content: JSON.stringify({
+            lastQuestion: lastAssistantText ?? null,
+            hasActiveSearch: !!activeRfq, publicMenu: publicMenu(state, at),
+            currentMessage: input.message,
+        }) },
     ];
     // External inference is outside the CAS transaction; never retry it inside a write loop.
-    const completion = await provider.complete(messages);
-    let decision;
-    try { decision = agentDecisionSchema.parse(JSON.parse(completion.content)); }
-    catch { throw new DomainError('PROVIDER_INVALID_OUTPUT', 'A Byara não produziu um rascunho válido. Reformule a mensagem.', 502); }
-    const tool = runCustomerTool(decision, session.draft, state, at, input.message);
+    const { decision, completion, completions } = await customerDecision(provider, messages, maxCalls - session.calls);
+    const tool = runCustomerTool(decision, session.draft, state, at, input.message, lastAssistantText);
     const reply = completion.usage.mode === 'LOCAL_MOCK' ?
         'Modo de teste local: a IA não está conectada. Use o formulário abaixo para definir e autorizar seu pedido.' : tool.reply;
     state.customerAgent = {
         version: session.version + 1, draft: tool.draft,
         turns: [...session.turns, { role: 'user' as const, text: input.message, at },
             { role: 'assistant' as const, text: reply, at }].slice(-12),
-        calls: session.calls + (completion.usage.mode === 'NEURALAKE' ? 1 : 0), lastUsage: completion.usage,
+        calls: session.calls + completions.filter(c => c.usage.mode === 'NEURALAKE').length, lastUsage: completion.usage,
     };
     const result = { session: state.customerAgent, readiness: draftReadiness(tool.draft, state), offers: tool.offers };
     state.idempotency[key] = { digest, result };
-    recordUsage(state, completion.usage);
+    for (const attempt of completions) recordUsage(state, attempt.usage);
     event(state, 'CUSTOMER_DRAFT_UPDATED', 'buyer', 'Conversa do comprador atualizada',
         'Rascunho não autoriza compra. Revise antes de continuar.', `customer_${state.customerAgent.version}`, at);
     if (!await store.compareAndSwap(owner, row.revision, state, at)) {

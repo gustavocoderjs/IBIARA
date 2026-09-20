@@ -38,9 +38,36 @@ evita repetir essa preparação. Uma leitura GET, um reset ou uma falha de infer
 não inicializam o mercado expandido. Cenários existentes preservam saldos e transações.
 
 Ferramentas permitidas ao comprador: `propose_request`, `consult_menu` e `inspect_offers`.
+As consultas também aceitam `patch` opcional com os mesmos campos de rascunho.
+Assim, uma mensagem pode responder à pergunta anterior e consultar o cardápio.
+Os dados validados são aplicados antes da consulta. “Não” só completa a declaração
+de restrições quando responde à pergunta correspondente; ressalvas continuam bloqueando.
 `consult_menu` retorna uma resposta calculada pelo backend com pratos, ingredientes,
 preço total de referência com entrega, prazo e disponibilidade atual; não revela
 custos, margem, piso, política ou saldo exato. Consulta não equivale a reserva.
+`inspect_offers` sem busca vigente e mandato válido retorna o cardápio público,
+sem usar propostas de compras encerradas. O próximo passo considera os dados já informados.
+
+Saída JSON inválida do comprador permite **uma** tentativa de correção de formato,
+respeitando o saldo de chamadas. A segunda saída passa pelo mesmo schema estrito;
+nada autoriza compra. Em sucesso, ambas as chamadas/tokens são contabilizadas; se
+não houver resultado válido, o estado anterior é preservado. Os logs registram só
+categorias do erro, sem conteúdo de conversa ou resposta do provedor.
+O limite contabiliza turnos persistidos, não é um teto de faturamento do provedor:
+tentativas que falham inteiramente ou perdem uma disputa CAS não entram no contador.
+O rascunho fica no backend; a extração recebe mensagem atual, última pergunta e
+cardápio público, evitando reconstruir preferências a partir de turnos antigos.
+Perguntas de esclarecimento são feitas uma por vez. Consultas puras de cardápio
+não mudam preferências; correções de região não podem abreviar o prato já escolhido.
+
+O rascunho e o comando `mandate` aceitam `selectionPreference`: `LOWEST_PRICE`
+(padrão compatível com dados antigos) ou `BEST_RATED`. A melhor nota tem precedência
+sobre preço e espera, mas apenas entre ofertas que atendem orçamento, prazo,
+composição, estoque e capacidade. Empates usam preço, prazo e ID do restaurante.
+Ofertas/cardápio/projeção pública incluem `ratingTenths` (0–50 ou null), `ratingCount`
+e `ratingIsDemo`. Todas as notas atuais são fixtures simuladas, sem coleta de reviews.
+Sem avaliações, a oferta fica depois das avaliadas. Valores ausentes em cenários
+legados recebem defaults de leitura; nenhum estoque ou pedido é reinicializado.
 
 `reset: true` exige a versão atual da conversa e limpa somente rascunho/turnos.
 Preserva pedidos, mandatos, estoques, histórico comercial e contagem de chamadas.

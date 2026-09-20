@@ -9,12 +9,13 @@ export const customerDraftSchema = z.object({
     zone: z.enum(['demo_butanta', 'other']).nullable(),
     excluded: z.array(z.string().trim().min(1).max(100)).max(20).nullable(),
     foodSafetyConcern: z.boolean().nullable(),
+    selectionPreference: z.enum(['LOWEST_PRICE', 'BEST_RATED']).nullable().optional(),
 }).strict();
 export const customerPatchSchema = customerDraftSchema.partial();
 export const agentDecisionSchema = z.discriminatedUnion('tool', [
     z.object({ tool: z.literal('propose_request'), patch: customerPatchSchema }).strict(),
-    z.object({ tool: z.literal('inspect_offers') }).strict(),
-    z.object({ tool: z.literal('consult_menu') }).strict(),
+    z.object({ tool: z.literal('inspect_offers'), patch: customerPatchSchema.optional() }).strict(),
+    z.object({ tool: z.literal('consult_menu'), patch: customerPatchSchema.optional() }).strict(),
 ]);
 const messageTurnSchema = z.object({
     message: z.string().trim().min(1).max(1000),

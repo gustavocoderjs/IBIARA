@@ -4,6 +4,7 @@ import { qadd, qsub, money } from './money.ts';
 import { normalize } from '../adapters/neuralake.ts';
 import { catalog } from './fixtures.ts';
 import { mealIntentIssue } from './meal-intent.ts';
+import { compareOffers, publicRating } from './ratings.ts';
 const dishIdentity = (recipe: Recipe) => normalize(recipe.mode === 'PREPRODUCED' ?
     recipe.name.replace(/ \(pré-produzido\)$/, '') : recipe.name);
 const currentRecipes = (restaurant: Restaurant) => restaurant.recipes.filter(recipe =>
@@ -14,7 +15,7 @@ export function validMandate(m: Mandate | undefined, at: string): asserts m is M
 export function merchantOffer(r: Restaurant, recipe: Recipe, rfq: RFQ, at: string, requested?: number, previous?: Offer): Offer {
     const receipt = quote(r, recipe, at, requested);
     const subtotalCents = receipt.subtotalCents;
-    return { id: uid('offer'), rfqId: rfq.id, merchantId: r.id, merchantName: r.name, recipeId: recipe.id, recipeVersion: recipe.version, dish: recipe.name, composition: recipe.components.map(c => catalog.find(i => i.id === c.item)?.name ?? c.item), subtotalCents, deliveryCents: r.deliveryCents, buyerFeeCents: 0, totalCents: subtotalCents + r.deliveryCents, eta: r.eta, expiresAt: new Date(Math.min(Date.parse(at) + r.policy!.offerTtlSeconds * 1000, Date.parse(rfq.expiresAt))).toISOString(), status: 'ISSUED', round: previous ? previous.round + 1 : 0, previousOfferId: previous?.id ?? null, quoteToken: uid('quote'), receipt, requirements: requirements(recipe) };
+    return { id: uid('offer'), rfqId: rfq.id, merchantId: r.id, merchantName: r.name, ...publicRating(r.id, r), recipeId: recipe.id, recipeVersion: recipe.version, dish: recipe.name, composition: recipe.components.map(c => catalog.find(i => i.id === c.item)?.name ?? c.item), subtotalCents, deliveryCents: r.deliveryCents, buyerFeeCents: 0, totalCents: subtotalCents + r.deliveryCents, eta: r.eta, expiresAt: new Date(Math.min(Date.parse(at) + r.policy!.offerTtlSeconds * 1000, Date.parse(rfq.expiresAt))).toISOString(), status: 'ISSUED', round: previous ? previous.round + 1 : 0, previousOfferId: previous?.id ?? null, quoteToken: uid('quote'), receipt, requirements: requirements(recipe) };
 }
 export function createRfq(s: State, mandateId: string, at: string) {
     const m = s.mandates.find(m => m.id === mandateId);
@@ -146,7 +147,7 @@ export function negotiate(s: State, rfqId: string, at: string) {
             }
         }
     }
-    const eligible = s.offers.filter(o => o.rfqId === rfq.id && o.status === 'ISSUED' && o.expiresAt > at && o.totalCents <= m.maxCents - m.committedCents && o.eta <= m.maxMinutes).sort((a, b) => a.totalCents - b.totalCents || a.eta - b.eta || a.merchantId.localeCompare(b.merchantId));
+    const eligible = s.offers.filter(o => o.rfqId === rfq.id && o.status === 'ISSUED' && o.expiresAt > at && o.totalCents <= m.maxCents - m.committedCents && o.eta <= m.maxMinutes).sort((a, b) => compareOffers(a, b, m.selectionPreference));
     for (const o of eligible) {
         try {
             return accept(s, o.id, o.quoteToken, at);

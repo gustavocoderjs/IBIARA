@@ -4,6 +4,7 @@ import { ArrowRight, Loader2, MessageCircle, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import type { CustomerDraft, CustomerSession } from '@/lib/agents/customer/schemas';
+import { emptyCustomerSession } from '@/lib/agents/customer/state';
 
 type ConversationView = { session: CustomerSession; readiness: { ready: boolean; missing: string[]; unsupported: string[] }; mode?: string };
 type ConversationProps = {
@@ -11,13 +12,15 @@ type ConversationProps = {
     completedOrderAt?: string;
     onReview(draft: CustomerDraft): void;
     onDraftChanged(): void;
-    onManualReview(message: string): void;
+    onManualReview(draft: CustomerDraft, descriptionSeed?: string): void;
 };
 
 export function CustomerConversation({ disabled, completedOrderAt, onReview, onDraftChanged, onManualReview }: ConversationProps) {
     const [view, setView] = useState<ConversationView | null>(null);
     const [text, setText] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [loadAttempt, setLoadAttempt] = useState(0);
     const [pending, setPending] = useState<'message' | 'reset' | null>(null);
     const inFlight = useRef(false);
     const retry = useRef<{ body: string; key: string } | null>(null);
@@ -30,10 +33,11 @@ export function CustomerConversation({ disabled, completedOrderAt, onReview, onD
         fetch('/api/v1/customer-agent', { signal: controller.signal }).then(async r => {
             if (!r.ok) throw new Error('Não foi possível abrir a conversa. Você pode tentar novamente ou preencher seu pedido.');
             return r.json() as Promise<ConversationView>;
-        }).then(value => { if (alive.current) setView(value); })
-            .catch((e: Error) => { if (alive.current && e.name !== 'AbortError') setError(e.message); });
+        }).then(value => { if (alive.current && !controller.signal.aborted) setView(value); })
+            .catch((e: Error) => { if (alive.current && e.name !== 'AbortError') setError(e.message); })
+            .finally(() => { if (alive.current && !controller.signal.aborted) setLoading(false); });
         return () => { alive.current = false; controller.abort(); };
-    }, []);
+    }, [loadAttempt]);
     useEffect(() => { log.current?.scrollTo({ top: log.current.scrollHeight }); }, [view?.session.version, pending]);
     const lastUserTurn = view?.session.turns.findLast(t => t.role === 'user');
     const needsNewRequest = Boolean(completedOrderAt && lastUserTurn && lastUserTurn.at <= completedOrderAt);
@@ -68,7 +72,8 @@ export function CustomerConversation({ disabled, completedOrderAt, onReview, onD
     function submit(e: FormEvent) { e.preventDefault(); void request(); }
     const draft = view?.session.draft;
     const mode = view?.session.lastUsage?.mode ?? view?.mode;
-    const fallbackMessage = text.trim() || lastUserTurn?.text || '';
+    const hasDraft = draft && (draft.selectionPreference === 'BEST_RATED' ||
+        Object.entries(draft).some(([field, value]) => field !== 'selectionPreference' && value != null));
     const canUseFallback = !needsNewRequest && Boolean(error || (mode === 'LOCAL_MOCK' && lastUserTurn));
 
     return <section className="panel customer-conversation" aria-labelledby="customer-chat-title">
@@ -76,7 +81,7 @@ export function CustomerConversation({ disabled, completedOrderAt, onReview, onD
         <p className="small-note">Seu agente entende o pedido, pergunta o que falta e consulta os restaurantes. A compra só começa depois da sua autorização.</p>
         {mode === 'LOCAL_MOCK' && <p className="customer-mode" role="status">Modo simulado · IA desconectada. A conversa não interpreta pedidos neste modo.</p>}
         {mode === 'NEURALAKE' && <p className="customer-mode live">Byara conectada à NeuraLake · restaurantes e pedidos de demonstração</p>}
-        {!view && !error && <p role="status" className="small-note my-4">Abrindo sua conversa…</p>}
+        {!view && loading && <p role="status" className="small-note my-4">Abrindo sua conversa…</p>}
         <div ref={log} className="customer-chat-log" role="log" aria-live="polite" aria-label="Conversa com a Byara">
             {view?.session.turns.map((t, i) => <div key={`${t.at}-${i}`} className={`customer-message ${t.role}`}><strong>{t.role === 'user' ? 'Você' : 'Byara'}</strong><p>{t.text}</p></div>)}
             {pending === 'message' && <p className="customer-thinking"><Loader2 className="spin" size={16}/>Byara está consultando seu pedido…</p>}
@@ -88,15 +93,20 @@ export function CustomerConversation({ disabled, completedOrderAt, onReview, onD
             <div className="customer-composer-footer"><span className="small-note">Você pode enviar os detalhes aos poucos.</span><Button disabled={!view || !!pending || disabled || !text.trim()} type="submit">{pending === 'message' ? 'Enviando…' : 'Enviar para a Byara'}<ArrowRight size={17}/></Button></div>
         </form>}
         {error && <p role="alert" className="customer-chat-error">{error}</p>}
+        {!view && error && <Button type="button" variant="outline" className="mt-3" disabled={disabled || loading}
+            onClick={() => { setError(''); setLoading(true); setLoadAttempt(attempt => attempt + 1); }}>Tentar carregar conversa novamente</Button>}
+        {view && error && <p className="small-note mt-2">Seu rascunho continua salvo e sua mensagem ficou no campo. Tente enviá-la novamente ou revise os dados manualmente.</p>}
         {disabled && <p className="small-note mt-3">Há uma operação em andamento ou uma autorização em aberto. Retome ou revogue a autorização abaixo antes de iniciar outro pedido.</p>}
-        {draft?.description && !needsNewRequest && <div className="customer-draft">
-            <h3>Seu pedido em construção</h3><p>{draft.description}</p>
+        {draft && hasDraft && !needsNewRequest && <div className="customer-draft">
+            <h3>Seu pedido em construção</h3><p>{draft.description ?? 'Refeição ainda a escolher.'}</p>
             <p>{draft.portions ?? '—'} porção(ões) · limite R$ {draft.budget ?? '—'} · {draft.maxMinutes ?? '—'} min · {draft.zone === 'demo_butanta' ? 'Butantã' : draft.zone === 'other' ? 'Outra região' : 'Região pendente'}</p>
             <p>Ingredientes a excluir: {draft.excluded === null ? 'a confirmar' : draft.excluded.join(', ') || 'nenhum'}.</p>
+            <p>Critério de escolha: {draft.selectionPreference === 'BEST_RATED' ? 'melhor avaliação' : 'menor preço total'}.</p>
             {view?.readiness.unsupported.map(x => <p className="customer-chat-error" key={x}>{x}</p>)}
-            {view?.readiness.ready ? <Button type="button" className="mt-3" disabled={disabled || !!pending} onClick={() => onReview(draft)}>Revisar pedido<ArrowRight size={17}/></Button> : <p className="small-note mt-3">Continue a conversa para completar os detalhes antes da revisão.</p>}
+            {!!view?.readiness.missing.length && <div className="small-note mt-3"><strong>Falta confirmar:</strong><ul className="list-disc pl-5 mt-1">{view.readiness.missing.map(item => <li key={item}>{item}</li>)}</ul></div>}
+            {view?.readiness.ready && <Button type="button" className="mt-3" disabled={disabled || !!pending} onClick={() => onReview(draft)}>Revisar pedido<ArrowRight size={17}/></Button>}
         </div>}
-        {canUseFallback && <div className="customer-fallback"><p className="small-note">Se preferir, preencha e revise os dados para continuar sem interpretação por IA.</p><Button type="button" variant="outline" disabled={disabled || !!pending || !fallbackMessage} onClick={() => onManualReview(fallbackMessage)}>Preencher pedido manualmente</Button></div>}
+        {canUseFallback && <div className="customer-fallback"><p className="small-note">Você pode continuar por aqui. Os dados já organizados serão mantidos para revisão.</p><Button type="button" variant="outline" disabled={disabled || !!pending || loading} onClick={() => onManualReview(draft ?? emptyCustomerSession().draft)}>Preencher pedido manualmente</Button></div>}
         {view && lastUserTurn && !needsNewRequest && <Button className="mt-4" variant="ghost" type="button" disabled={disabled || !!pending} onClick={() => void request(true)}><RotateCcw size={15}/>Descartar rascunho e começar de novo</Button>}
     </section>;
 }

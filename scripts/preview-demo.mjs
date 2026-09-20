@@ -2,7 +2,10 @@ import http from 'node:http';
 
 // Explicit local-only preview for the compiled Worker. This never runs in the
 // deployed app and must not be exposed through a public tunnel or network bind.
-const port = 5173;
+// Isolated browser checks never write into the person's local demo workspace.
+const isolated = process.argv.includes('--isolated');
+const port = isolated ? 5174 : 5173;
+const owner = isolated ? `browser_test_${crypto.randomUUID()}` : 'local_browser_demo';
 const upstreamPort = 4173;
 const upstreamOrigin = `http://127.0.0.1:${upstreamPort}`;
 const allowedHosts = new Set([`127.0.0.1:${port}`, `localhost:${port}`]);
@@ -26,7 +29,7 @@ const server = http.createServer((request, response) => {
         if (name.startsWith('oai-authenticated-user-') || name.startsWith('x-forwarded-') ||
             ['forwarded', 'connection', 'proxy-authorization', 'proxy-connection'].includes(name)) delete headers[name];
     }
-    headers['oai-authenticated-user-id'] = 'local_browser_demo';
+    headers['oai-authenticated-user-id'] = owner;
     headers['oai-authenticated-user-email'] = 'demo@localhost.test';
     headers['oai-authenticated-user-full-name'] = 'Operador%20da%20demo%20local';
     headers['oai-authenticated-user-full-name-encoding'] = 'percent-encoded-utf-8';
@@ -57,5 +60,6 @@ server.on('error', error => { console.error(error.message); process.exitCode = 1
 server.listen(port, '127.0.0.1', () => {
     console.log(`Demo local: http://127.0.0.1:${port} → Worker ${upstreamOrigin}`);
     console.log('Identidade fictícia local. Preview compilado, sem HMR.');
+    if (isolated) console.log('Cenário de teste isolado; sua conversa habitual permanece intacta.');
 });
 for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => server.close());
