@@ -1,4 +1,4 @@
-# API 0.1.0
+# API do MVP
 
 Prefixo `/api/v1`. As rotas do guia eram propostas; esta release concentra comandos tipados em uma rota, com validação Zod estrita. Não declarar a superfície FastAPI/OpenAPI proposta como implementada.
 
@@ -9,6 +9,8 @@ Prefixo `/api/v1`. As rotas do guia eram propostas; esta release concentra coman
 | GET `/state?role=merchant\|buyer` | Projeção autorizada da visão da demo |
 | GET `/events?role=...&after=N` | SSE finito, `id`, `event: change`, retry 3 s, retomada por Last-Event-ID |
 | POST `/commands` | JSON validado + `Idempotency-Key` obrigatória |
+| GET `/customer-agent` | Sessão privada do comprador, rascunho e pendências |
+| POST `/customer-agent` | `{message, expectedVersion}` ou `{reset: true, expectedVersion}` + `Idempotency-Key`; não compra |
 
 Private Sites verifica o acesso e encaminha `oai-authenticated-user-id`. A aplicação usa esse identificador no predicado de toda leitura/escrita. Em hospedagem alternativa é obrigatório substituir essa confiança em header por autenticação verificada; nunca expor o Worker diretamente aceitando headers arbitrários.
 
@@ -17,6 +19,40 @@ Mutações exigem JSON, corpo limitado, origem compatível quando enviada e uma 
 Comandos de restaurante: `turn`, `seed_demo`, `new_recipe`, `revise_recipe`, `confirm_recipe`, `policy`, `purchase`, `receive`, `count`, `confirm_count`, `surplus`, `eligibility`, `schedule`, `tick`, `produce`, `order`.
 
 Comandos de consumidor: `mandate`, `revoke`, `rfq`, `negotiate`, `counter`, `accept`, `order` (somente cancelamento elegível). Mandato atual: uma porção, uma compra, 15 minutos. `negotiate` executa a seleção automaticamente; não há clique manual no vencedor.
+
+A nova UI usa `agent_negotiate` com `scope: "buyer"` e `rfqId` após criar a RFQ.
+Esse comando consulta três contextos NeuraLake separados (ou mock explícito), valida
+ofertas próprias/recusas e chama o domínio existente. Não aceita remetente/destinatário,
+prompt, credencial, preço ou ownerId enviados pelo cliente. Falha live não ativa mock.
+O comando determinístico `negotiate` anterior permanece disponível para compatibilidade.
+
+Os schemas de comunicação estão em `lib/agents/shared/contracts.ts` e `router.ts`.
+Não existe endpoint de mensagem direta restaurante→restaurante.
+`POST /customer-agent` retorna `{result:{session,readiness,offers},replayed}`.
+GET retorna `{session,readiness,mode}`. Conflitos 409 exigem recarga do estado;
+resposta inválida do modelo é 502, indisponibilidade/timeout é 503, limite de chamadas é 429.
+
+O primeiro turno válido de mensagem prepara o mercado simulado na mesma gravação:
+12 fichas, 16 insumos e estoques lógicos por restaurante. O marcador `demoMarketVersion`
+evita repetir essa preparação. Uma leitura GET, um reset ou uma falha de inferência
+não inicializam o mercado expandido. Cenários existentes preservam saldos e transações.
+
+Ferramentas permitidas ao comprador: `propose_request`, `consult_menu` e `inspect_offers`.
+`consult_menu` retorna uma resposta calculada pelo backend com pratos, ingredientes,
+preço total de referência com entrega, prazo e disponibilidade atual; não revela
+custos, margem, piso, política ou saldo exato. Consulta não equivale a reserva.
+
+`reset: true` exige a versão atual da conversa e limpa somente rascunho/turnos.
+Preserva pedidos, mandatos, estoques, histórico comercial e contagem de chamadas.
+Não faz inferência nem autoriza uma nova compra. A revisão humana e o comando de
+mandato continuam obrigatórios antes de negociar.
+
+RFQs podem conter `dishName`, derivado de um prato reconhecido nas versões atuais
+das fichas. Nesse caso, ofertas precisam corresponder ao prato; uma receita com
+ingredientes semelhantes não pode substituí-lo. Lotes pré-produzidos do mesmo prato
+continuam elegíveis. `meal-intent.ts` rejeita termos fora do vocabulário conservador
+da demo com `INTENT_UNSUPPORTED`, em vez de apagar a parte desconhecida da intenção.
+Exemplo: **pizza de queijo** não deve virar uma compra de macarrão com queijo.
 
 ```json
 {"type":"mandate","scope":"buyer","description":"Bife a cavalo com arroz e feijão","maxCents":3500,"maxMinutes":40,"zone":"demo_butanta","excluded":[],"confirmed":true}

@@ -1,5 +1,11 @@
 # Trabalho em equipe · 3 ou 4 pessoas
 
+Atualização da fundação: backlog canônico no Trello
+https://trello.com/b/YNokvONE/ibyara-hackathon. O repositório agora tem a release
+f5d3b67 publicada e foi lido via Git; o diagnóstico de 404 abaixo é histórico.
+Trabalhos de agentes: `lib/agents/customer`, `restaurants` e `shared`.
+Combine mudanças em contratos/router com quem integra o backend; não compartilhe históricos.
+
 ## Divisão proposta
 
 | Frente | Responsabilidade | Arquivos principais | Revisão em par |

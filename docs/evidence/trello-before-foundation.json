@@ -1,0 +1,395 @@
+{
+  "lists": [
+    {
+      "id": "ari:cloud:trello::list/workspace/66cf7f773c7deb3337d3b14c/6aaf00c99b7aa850c6a14e57",
+      "name": "P0 · Essenciais — prioridade máxima",
+      "cards": [
+        {
+          "id": "ari:cloud:trello::card/workspace/66cf7f773c7deb3337d3b14c/6aaf0142137003347eca19f3",
+          "name": "[P0] Preparar base técnica, contratos e integração NeuraLake",
+          "description": "## Objetivo e prioridade\n\nDesbloquear a linha vertical conversa → receita → custo → oferta → pedido e reduzir riscos externos antes de ampliar a UI. Essencial para o hackathon; executar primeiro.\n\n## Escopo técnico\n\nPreparar monólito modular, PostgreSQL/migrações, autenticação de demo, fixtures isoladas e ambiente reproduzível com lockfiles. Baseline proposta: React/TypeScript/Vite, Python/FastAPI/Pydantic/Decimal e Docker Compose. Definir Money, Quantity, contratos versionados ibyara.exchange.v1 e OpenAPI; comandos recebem escopo autenticado, correlation_id e idempotency_key.  \nImplementar adapter NeuraLake com timeout, limites e validação estrita; banco permanece autoridade. Manter Cross Memory desabilitada até validar contrato e isolamento. Fazer smoke test de voz/provedor para orientar a frente conversacional.  \nRegistrar decisões pendentes sobre trilha com a equipe/mentores, fonte fiscal e recursos reais da conta; não escolher trilha nem cortar onboarding unilateralmente.\n\n\n## Validação\n\nBoot reproduzível, testes de contratos e isolamento, smoke real do fornecedor com evidência redigida. Registrar versões e decisões PROPOSED/ACCEPTED apenas conforme evidência.\n\n## Referência específica\n\n§10–13, 18–20; pp. 16–25, 33–38.\n\nFonte: IBYARA_GUIDE.pdf v1.0.0. Propostas técnicas e valores de demo não são capacidades já implementadas ou políticas universais. Critérios no checklist; registrar testes/evidências/commit e NOT_RUN quando aplicável.\nOrigem: IB-1.\n\n## Dependências no Trello\nNenhuma tarefa anterior; validar acessos como primeiro passo.",
+          "url": "https://trello.com/c/4czG1yoa/1-p0-preparar-base-t%C3%A9cnica-contratos-e-integra%C3%A7%C3%A3o-neuralake",
+          "shortUrl": "https://trello.com/c/4czG1yoa",
+          "closed": false,
+          "complete": false,
+          "position": 140737488355328,
+          "lastActivityAt": "2026-09-19T21:45:10.192Z",
+          "startedAt": null,
+          "due": {
+            "date": null,
+            "complete": false
+          },
+          "listId": null,
+          "boardId": null,
+          "labels": [],
+          "labelsHasMore": false,
+          "checklists": [],
+          "checklistsHasMore": false,
+          "members": [],
+          "comments": [],
+          "commentsHasMore": false,
+          "list": null,
+          "board": null
+        },
+        {
+          "id": "ari:cloud:trello::card/workspace/66cf7f773c7deb3337d3b14c/6aaf0144621a38f17f23abdd",
+          "name": "[P0] Implementar custo, política confirmada e preço determinístico",
+          "description": "## Objetivo e prioridade\n\nGarantir ofertas executáveis dentro dos limites do restaurante. Essencial: nenhum preço ou desconto pode ser inventado pelo LLM.\n\n## Escopo técnico\n\nCusteio por ficha completa, rendimento/base física e custos confirmados; política versionada e confirmada pelo dono. Implementar pisos de custeio/desconto/absoluto, teto de markup, taxas e estratégias determinísticas BALANCED/SURPLUS_FIRST/CAPACITY_PROTECTION. Emitir Offer e PricingReceipt privado com snapshots e versões. Bloquear custo ausente, receita incompleta, lote inelegível e política inviável.\n\n\n## Validação\n\nAT-03, AT-07/08/09/25; propriedades de total, intervalo de preços e contribuição; bordas r+m>=1, rendimentos inválidos, unidade incompatível e arredondamento.\n\n## Referência específica\n\n§07–08, 11, 15–16; pp. 11–15, 19–21, 27–30.\n\nFonte: IBYARA_GUIDE.pdf v1.0.0. Propostas técnicas e valores de demo não são capacidades já implementadas ou políticas universais. Critérios no checklist; registrar testes/evidências/commit e NOT_RUN quando aplicável.\nOrigem: IB-2.\n\n## Dependências no Trello\n- [Preparar base técnica, contratos e integração NeuraLake](https://trello.com/c/4czG1yoa)",
+          "url": "https://trello.com/c/NgHrpkSy/2-p0-implementar-custo-pol%C3%ADtica-confirmada-e-pre%C3%A7o-determin%C3%ADstico",
+          "shortUrl": "https://trello.com/c/NgHrpkSy",
+          "closed": false,
+          "complete": false,
+          "position": 140737488371712,
+          "lastActivityAt": "2026-09-19T21:45:11.642Z",
+          "startedAt": null,
+          "due": {
+            "date": null,
+            "complete": false
+          },
+          "listId": null,
+          "boardId": null,
+          "labels": [],
+          "labelsHasMore": false,
+          "checklists": [],
+          "checklistsHasMore": false,
+          "members": [],
+          "comments": [],
+          "commentsHasMore": false,
+          "list": null,
+          "board": null
+        },
+        {
+          "id": "ari:cloud:trello::card/workspace/66cf7f773c7deb3337d3b14c/6aaf0146acb9b0b28289a444",
+          "name": "[P0] Implementar ledger de estoque, produção e reservas",
+          "description": "## Objetivo e prioridade\n\nImpedir venda sem disponibilidade e dupla baixa. Base essencial para ofertas, pedido e reconciliação.\n\n## Escopo técnico\n\nPersistir itens, lotes elegíveis e eventos GoodsReceived, StockReserved, ReservationReleased, IngredientConsumed, ProductionCompleted, WasteRecorded, StockCountConfirmed e StockEligibilityChanged. Distinguir AS_PURCHASED/RAW_EDIBLE/COOKED_EDIBLE, g/ml/un, rendimento e modo de preparo. Disponível = saldo elegível - reservas ativas - estoque de segurança.  \nSuportar preparo sob pedido e pré-produzido; a demo pode limitar variedade sem misturar pronto com cru. Reservar todos os componentes e capacidade.\n\n\n## Validação\n\nAT-06/11/18/19; integração transacional e propriedades de disponibilidade e consumo único. Evidenciar eventos e saldos antes/depois com fixtures fictícias.\n\n## Referência específica\n\n§06–07, 12, 15; pp. 10–12, 23, 27–28.\n\nFonte: IBYARA_GUIDE.pdf v1.0.0. Propostas técnicas e valores de demo não são capacidades já implementadas ou políticas universais. Critérios no checklist; registrar testes/evidências/commit e NOT_RUN quando aplicável.\nOrigem: IB-3.\n\n## Dependências no Trello\n- [Preparar base técnica, contratos e integração NeuraLake](https://trello.com/c/4czG1yoa)",
+          "url": "https://trello.com/c/GwK6woBV/3-p0-implementar-ledger-de-estoque-produ%C3%A7%C3%A3o-e-reservas",
+          "shortUrl": "https://trello.com/c/GwK6woBV",
+          "closed": false,
+          "complete": false,
+          "position": 140737488388096,
+          "lastActivityAt": "2026-09-19T21:45:13.230Z",
+          "startedAt": null,
+          "due": {
+            "date": null,
+            "complete": false
+          },
+          "listId": null,
+          "boardId": null,
+          "labels": [],
+          "labelsHasMore": false,
+          "checklists": [],
+          "checklistsHasMore": false,
+          "members": [],
+          "comments": [],
+          "commentsHasMore": false,
+          "list": null,
+          "board": null
+        },
+        {
+          "id": "ari:cloud:trello::card/workspace/66cf7f773c7deb3337d3b14c/6aaf01481f9f3d06558b46cc",
+          "name": "[P0] Construir cadastro conversacional por voz e texto com ficha validada",
+          "description": "## Objetivo e prioridade\n\nAbrir a demo com cadastro real da Marmita Quentinha do Seu Niko e um ou dois pratos, preservando conversa e voz como requisitos essenciais.\n\n## Escopo técnico\n\nConversation API persiste turnos, RecipeDraftPatch com origem, pendências, expected_version e confirmação. Interface i.byara com cards de estado, visões separadas e Byara em português. Voz por turnos com transcrição/síntese desacopladas, permissão de microfone visível e texto como contingência oficial; não prometer full-duplex.  \nUsar a fala de abertura do §05/17. Esclarecer peso/base de dois bifes, acompanhamentos crus/prontos, rendimentos, preparo, óleo, temperos, embalagem e porções. Política ambígua exige esclarecimento e confirmação.\n\n\n## Validação\n\nAT-01/02/03/04/24; teste no navegador/rede/microfone da demo, além de testes de patches e retomada. Integração com motor de preços após sua disponibilidade.\n\n## Referência específica\n\n§03–05, 10, 15–17; pp. 6–10, 18, 27–32.\n\nFonte: IBYARA_GUIDE.pdf v1.0.0. Propostas técnicas e valores de demo não são capacidades já implementadas ou políticas universais. Critérios no checklist; registrar testes/evidências/commit e NOT_RUN quando aplicável.\nOrigem: IB-4.\n\n## Dependências no Trello\n- [Preparar base técnica, contratos e integração NeuraLake](https://trello.com/c/4czG1yoa)",
+          "url": "https://trello.com/c/mhWv9cHk/4-p0-construir-cadastro-conversacional-por-voz-e-texto-com-ficha-validada",
+          "shortUrl": "https://trello.com/c/mhWv9cHk",
+          "closed": false,
+          "complete": false,
+          "position": 140737488404480,
+          "lastActivityAt": "2026-09-19T21:45:14.971Z",
+          "startedAt": null,
+          "due": {
+            "date": null,
+            "complete": false
+          },
+          "listId": null,
+          "boardId": null,
+          "labels": [],
+          "labelsHasMore": false,
+          "checklists": [],
+          "checklistsHasMore": false,
+          "members": [],
+          "comments": [],
+          "commentsHasMore": false,
+          "list": null,
+          "board": null
+        },
+        {
+          "id": "ari:cloud:trello::card/workspace/66cf7f773c7deb3337d3b14c/6aaf014b0f95ade6f52bf344",
+          "name": "[P0] Implementar Buyer/Merchant Agents e negociação A2A limitada",
+          "description": "## Objetivo e prioridade\n\nDemonstrar autonomia bilateral: um comprador e três agentes de restaurante descobrem, ofertam, contrapropõem e selecionam sem escolha manual do vencedor.\n\n## Escopo técnico\n\nExchange filtra área/horário/capacidade/composição e envia RFQ mínima. Buyer usa intenção e mandato privados; cada Merchant usa somente seu restaurante e pede valores ao motor. Baseline de demo: até três restaurantes, rodada inicial e até duas contrapropostas, TTL e limites de tempo/chamadas/custo.  \nAplicar filtros duros antes do ranking. Menor preço: total, prazo, ID estável; modo ponderado apenas com pesos confirmados/versionados. CounterOffer gera nova oferta imutável.\n\n\n## Validação\n\nAT-08/09/10/19/20/21/23/25 e testes de roteamento, ranking, expiração e limites; transcript redigido derivado do backend.\n\n## Referência específica\n\n§09–13, 15–16; pp. 15–25, 27–30.\n\nFonte: IBYARA_GUIDE.pdf v1.0.0. Propostas técnicas e valores de demo não são capacidades já implementadas ou políticas universais. Critérios no checklist; registrar testes/evidências/commit e NOT_RUN quando aplicável.\nOrigem: IB-6.\n\n## Dependências no Trello\n- [Preparar base técnica, contratos e integração NeuraLake](https://trello.com/c/4czG1yoa)\n- [Implementar custo, política confirmada e preço determinístico](https://trello.com/c/NgHrpkSy)\n- [Implementar ledger de estoque, produção e reservas](https://trello.com/c/GwK6woBV)",
+          "url": "https://trello.com/c/PqkYrtPu/6-p0-implementar-buyer-merchant-agents-e-negocia%C3%A7%C3%A3o-a2a-limitada",
+          "shortUrl": "https://trello.com/c/PqkYrtPu",
+          "closed": false,
+          "complete": false,
+          "position": 140737488420864,
+          "lastActivityAt": "2026-09-19T21:45:20.695Z",
+          "startedAt": null,
+          "due": {
+            "date": null,
+            "complete": false
+          },
+          "listId": null,
+          "boardId": null,
+          "labels": [],
+          "labelsHasMore": false,
+          "checklists": [],
+          "checklistsHasMore": false,
+          "members": [],
+          "comments": [],
+          "commentsHasMore": false,
+          "list": null,
+          "board": null
+        },
+        {
+          "id": "ari:cloud:trello::card/workspace/66cf7f773c7deb3337d3b14c/6aaf014ddf3e4c09bd3521c0",
+          "name": "[P0] Executar aceite atômico e pedido sandbox dentro do mandato",
+          "description": "## Objetivo e prioridade\n\nConverter negociação em uma reserva/pedido verificável, sem ultrapassar orçamento nem duplicar efeitos. Essencial para provar execução da demo.\n\n## Escopo técnico\n\nPurchaseMandate privado/revogável com total, prazo, escopo, destino e usos. No aceite, validar oferta emitida pelo backend, expiração, revogação e escopo; reservar orçamento, todos os componentes e capacidade, criar pedido e outbox na mesma transação. Ordem estável de locks/atualização condicional. ExecutionAdapter em sandbox; confirmar pedido em sandbox sem cobrança real.\n\n\n## Validação\n\nAT-10/11/12/13/14/19/26; concorrência no PostgreSQL, retries e rollback/outbox, expiração no instante limite e cancelamento por estado.\n\n## Referência específica\n\n§11–12, 14–16; pp. 19–23, 26–30.\n\nFonte: IBYARA_GUIDE.pdf v1.0.0. Propostas técnicas e valores de demo não são capacidades já implementadas ou políticas universais. Critérios no checklist; registrar testes/evidências/commit e NOT_RUN quando aplicável.\nOrigem: IB-7.\n\n## Dependências no Trello\n- [Implementar ledger de estoque, produção e reservas](https://trello.com/c/GwK6woBV)\n- [Implementar Buyer/Merchant Agents e negociação A2A limitada](https://trello.com/c/PqkYrtPu)",
+          "url": "https://trello.com/c/PnqJ6qVU/7-p0-executar-aceite-at%C3%B4mico-e-pedido-sandbox-dentro-do-mandato",
+          "shortUrl": "https://trello.com/c/PnqJ6qVU",
+          "closed": false,
+          "complete": false,
+          "position": 140737488437248,
+          "lastActivityAt": "2026-09-19T21:45:22.258Z",
+          "startedAt": null,
+          "due": {
+            "date": null,
+            "complete": false
+          },
+          "listId": null,
+          "boardId": null,
+          "labels": [],
+          "labelsHasMore": false,
+          "checklists": [],
+          "checklistsHasMore": false,
+          "members": [],
+          "comments": [],
+          "commentsHasMore": false,
+          "list": null,
+          "board": null
+        },
+        {
+          "id": "ari:cloud:trello::card/workspace/66cf7f773c7deb3337d3b14c/6aaf0153b2477a1eb9308b48",
+          "name": "[P0] Validar jornada completa, isolamento, telemetria e evidências",
+          "description": "## Objetivo e prioridade\n\nEstabelecer o gate de confiança da demo: execução real, limites preservados e evidências reproduzíveis. Os testes de cada componente começam junto da implementação; esta tarefa fecha a integração.\n\n## Escopo técnico\n\nEventos SSE/outbox com IDs, correlação, escopo por papel e retomada por último evento. Painel mostra propostas/reason_codes e estado do backend; não expor prompts privados ou chain-of-thought. Instrumentar chamadas, tokens, modelo, duração e custo; separar onboarding, comércio, voz e valores de alimentação.  \nAutomatizar matriz AT-01 a AT-26 e cenários alternativos, propriedades, concorrência e segurança. Criar fixture demo_v1 reinicializável apenas por operador e relatório por commit.\n\n\n## Validação\n\npytest/propriedades/contratos/integração e E2E no navegador conforme stack adotada; smoke real NeuraLake/voz/fiscal separado de mocks. Corrigir regressões do P0 antes do freeze.\n\n## Referência específica\n\n§13–16, 20; pp. 24–30, 37.\n\nFonte: IBYARA_GUIDE.pdf v1.0.0. Propostas técnicas e valores de demo não são capacidades já implementadas ou políticas universais. Critérios no checklist; registrar testes/evidências/commit e NOT_RUN quando aplicável.\nOrigem: IB-9.\n\n## Dependências no Trello\n- [Implementar custo, política confirmada e preço determinístico](https://trello.com/c/NgHrpkSy)\n- [Construir cadastro conversacional por voz e texto com ficha validada](https://trello.com/c/mhWv9cHk)\n- [Ingerir uma fonte fiscal com deduplicação e recebimento confirmado](https://trello.com/c/Y8jqloOv)\n- [Executar aceite atômico e pedido sandbox dentro do mandato](https://trello.com/c/PnqJ6qVU)\n- [Implementar contagem conversacional, periodicidade e reconciliação](https://trello.com/c/Zt1q80Vt)",
+          "url": "https://trello.com/c/5TqDa1oM/9-p0-validar-jornada-completa-isolamento-telemetria-e-evid%C3%AAncias",
+          "shortUrl": "https://trello.com/c/5TqDa1oM",
+          "closed": false,
+          "complete": false,
+          "position": 140737488453632,
+          "lastActivityAt": "2026-09-19T21:45:26.905Z",
+          "startedAt": null,
+          "due": {
+            "date": null,
+            "complete": false
+          },
+          "listId": null,
+          "boardId": null,
+          "labels": [],
+          "labelsHasMore": false,
+          "checklists": [],
+          "checklistsHasMore": false,
+          "members": [],
+          "comments": [],
+          "commentsHasMore": false,
+          "list": null,
+          "board": null
+        },
+        {
+          "id": "ari:cloud:trello::card/workspace/66cf7f773c7deb3337d3b14c/6aaf0155ea094113f1a10038",
+          "name": "[P0] Preparar pitch, vídeo de 60 segundos e pacote final do hackathon",
+          "description": "## Objetivo e prioridade\n\nEntregar uma demonstração compreensível e um pacote avaliável. Essencial: repositório, vídeo de 60 segundos, short deck e documentação não podem ficar para depois das features.\n\n## Escopo e sequência\n\nComeçar roteiro/deck em paralelo; a dependência de testes é gate de conclusão, não impedimento à preparação. Pitch proposto de quatro minutos abre diretamente com cadastro conversacional do Niko, cria prato, esclarece pesos, mostra intenção/negociação, reserva, causalidade do estoque e limites.  \nPreparar vídeo obrigatório de 60 s e gravação de contingência identificada, README executável, versão/commit, instruções de demo, evidências e matriz de capacidades reais/simuladas.  \nConfirmar com a equipe/organização a trilha e horários: o guia cita freeze 20/09 às 11h, GitHub 12h30 e demoday 13h30 como referência sujeita a atualização. Não definir vencimentos automaticamente a partir disso.\n\n\n## Validação\n\nEnsaio completo, revisão cruzada vídeo/deck/commit, teste das instruções em ambiente limpo e checklist de entrega. Registrar canal/horário vigente informado pela organização.\n\n## Referência específica\n\n§16–20; pp. 29–37.\n\nFonte: IBYARA_GUIDE.pdf v1.0.0. Propostas técnicas e valores de demo não são capacidades já implementadas ou políticas universais. Critérios no checklist; registrar testes/evidências/commit e NOT_RUN quando aplicável.\nOrigem: IB-10.\n\n## Dependências no Trello\n- [Validar jornada completa, isolamento, telemetria e evidências](https://trello.com/c/5TqDa1oM)",
+          "url": "https://trello.com/c/zzs7yD8W/10-p0-preparar-pitch-v%C3%ADdeo-de-60-segundos-e-pacote-final-do-hackathon",
+          "shortUrl": "https://trello.com/c/zzs7yD8W",
+          "closed": false,
+          "complete": false,
+          "position": 140737488470016,
+          "lastActivityAt": "2026-09-19T21:45:29.757Z",
+          "startedAt": null,
+          "due": {
+            "date": null,
+            "complete": false
+          },
+          "listId": null,
+          "boardId": null,
+          "labels": [],
+          "labelsHasMore": false,
+          "checklists": [],
+          "checklistsHasMore": false,
+          "members": [],
+          "comments": [],
+          "commentsHasMore": false,
+          "list": null,
+          "board": null
+        }
+      ]
+    },
+    {
+      "id": "ari:cloud:trello::list/workspace/66cf7f773c7deb3337d3b14c/6aaf00d65c4ad21c5bda50cd",
+      "name": "P0 · Essenciais — prioridade alta",
+      "cards": [
+        {
+          "id": "ari:cloud:trello::card/workspace/66cf7f773c7deb3337d3b14c/6aaf01498f218dec0a995c83",
+          "name": "[P0] Ingerir uma fonte fiscal com deduplicação e recebimento confirmado",
+          "description": "## Objetivo e prioridade\n\nAlimentar compras e custos por uma fonte fiscal efetivamente suportada. Essencial do hackathon; cobertura universal fica fora deste recorte.\n\n## Escopo técnico\n\nEscolher/testar uma fonte autorizada; pipeline QR/link/arquivo → validação de origem → parsing → linhas normalizadas → insumo → exceções → compra/custo. Preservar documento/ambiente/emissor/data/linha, descrição original, quantidade/unidade, totais, descontos/encargos e vínculo interno. Perguntar fatores de caixa/fardo não confirmados.  \nSeparar PurchaseRecorded de GoodsReceived; custo médio ponderado móvel é proposta técnica, distinta de FEFO. QR/link exige allowlist, bloqueio de SSRF, validação de redirects, limites de tamanho/tempo e parsing isolado.\n\n\n## Validação\n\nAT-05/06/20, parsing e normalização, duplicata, fonte inválida e SSRF. Registrar claramente conector real versus contingência não demonstrada.\n\n## Referência específica\n\n§06, 14–16; pp. 10–11, 26–30.\n\nFonte: IBYARA_GUIDE.pdf v1.0.0. Propostas técnicas e valores de demo não são capacidades já implementadas ou políticas universais. Critérios no checklist; registrar testes/evidências/commit e NOT_RUN quando aplicável.\nOrigem: IB-5.\n\n## Dependências no Trello\n- [Preparar base técnica, contratos e integração NeuraLake](https://trello.com/c/4czG1yoa)\n- [Implementar ledger de estoque, produção e reservas](https://trello.com/c/GwK6woBV)",
+          "url": "https://trello.com/c/Y8jqloOv/5-p0-ingerir-uma-fonte-fiscal-com-deduplica%C3%A7%C3%A3o-e-recebimento-confirmado",
+          "shortUrl": "https://trello.com/c/Y8jqloOv",
+          "closed": false,
+          "complete": false,
+          "position": 140737488355328,
+          "lastActivityAt": "2026-09-19T21:45:16.590Z",
+          "startedAt": null,
+          "due": {
+            "date": null,
+            "complete": false
+          },
+          "listId": null,
+          "boardId": null,
+          "labels": [],
+          "labelsHasMore": false,
+          "checklists": [],
+          "checklistsHasMore": false,
+          "members": [],
+          "comments": [],
+          "commentsHasMore": false,
+          "list": null,
+          "board": null
+        },
+        {
+          "id": "ari:cloud:trello::card/workspace/66cf7f773c7deb3337d3b14c/6aaf0150c1746105284ab119",
+          "name": "[P0] Implementar contagem conversacional, periodicidade e reconciliação",
+          "description": "## Objetivo e prioridade\n\nDemonstrar que informação física confirmada muda o estado utilizado nas próximas ofertas. Reconciliação e voz/texto são essenciais, não simples efeitos visuais.\n\n## Escopo técnico\n\nDono configura periodicidade, horário e fuso; scheduler persiste/avalia próxima ocorrência. Relógio de teste é permitido se identificado. Contagem esclarece item/corte, cru/pronto, unidade, local, precisão e instante, apresenta resumo e exige confirmação. Registrar counted_at/recorded_at/autor/ledger e ajuste.  \nDeclaração de excedente deve vincular quantidade e saldo elegível; distinguir excedente declarado, exposição estimada, perda observada e consumo.\n\n\n## Validação\n\nAT-15/16/17/18; confirmação, timezone, disparo duplicado e demonstração antes/depois com mesma RFQ. Integração final com preço e negociação.\n\n## Referência específica\n\n§04, 07, 15–16; pp. 7–8, 11–13, 28–30.\n\nFonte: IBYARA_GUIDE.pdf v1.0.0. Propostas técnicas e valores de demo não são capacidades já implementadas ou políticas universais. Critérios no checklist; registrar testes/evidências/commit e NOT_RUN quando aplicável.\nOrigem: IB-8.\n\n## Dependências no Trello\n- [Implementar ledger de estoque, produção e reservas](https://trello.com/c/GwK6woBV)\n- [Construir cadastro conversacional por voz e texto com ficha validada](https://trello.com/c/mhWv9cHk)",
+          "url": "https://trello.com/c/Zt1q80Vt/8-p0-implementar-contagem-conversacional-periodicidade-e-reconcilia%C3%A7%C3%A3o",
+          "shortUrl": "https://trello.com/c/Zt1q80Vt",
+          "closed": false,
+          "complete": false,
+          "position": 140737488371712,
+          "lastActivityAt": "2026-09-19T21:45:24.407Z",
+          "startedAt": null,
+          "due": {
+            "date": null,
+            "complete": false
+          },
+          "listId": null,
+          "boardId": null,
+          "labels": [],
+          "labelsHasMore": false,
+          "checklists": [],
+          "checklistsHasMore": false,
+          "members": [],
+          "comments": [],
+          "commentsHasMore": false,
+          "list": null,
+          "board": null
+        }
+      ]
+    },
+    {
+      "id": "ari:cloud:trello::list/workspace/66cf7f773c7deb3337d3b14c/6aaf00d8f7d03cd3957e33f1",
+      "name": "Em andamento",
+      "cards": [
+        {
+          "id": "ari:cloud:trello::card/workspace/66cf7f773c7deb3337d3b14c/6aaf101e655b92e5fd4312c0",
+          "name": "[LINKS]",
+          "description": "Link da Demo GPT: [https://ibyara-primeira-release.zigfy.chatgpt.site/](https://ibyara-primeira-release.zigfy.chatgpt.site/ \"‌\")\n\n[https://github.com/apps/chatgpt-codex-connector?utm_source=chatgpt.com](https://github.com/apps/chatgpt-codex-connector?utm_source=chatgpt.com \"‌\")",
+          "url": "https://trello.com/c/mQr9SUQ6/13-links",
+          "shortUrl": "https://trello.com/c/mQr9SUQ6",
+          "closed": false,
+          "complete": false,
+          "position": 140737488355328,
+          "lastActivityAt": "2026-09-19T22:54:11.270Z",
+          "startedAt": null,
+          "due": {
+            "date": null,
+            "complete": false
+          },
+          "listId": null,
+          "boardId": null,
+          "labels": [],
+          "labelsHasMore": false,
+          "checklists": [],
+          "checklistsHasMore": false,
+          "members": [],
+          "comments": [],
+          "commentsHasMore": false,
+          "list": null,
+          "board": null
+        }
+      ]
+    },
+    {
+      "id": "ari:cloud:trello::list/workspace/66cf7f773c7deb3337d3b14c/6aaf00da30766c39d3a15235",
+      "name": "Em validação",
+      "cards": []
+    },
+    {
+      "id": "ari:cloud:trello::list/workspace/66cf7f773c7deb3337d3b14c/6aaf00db30766c39d3a15375",
+      "name": "Concluído",
+      "cards": []
+    },
+    {
+      "id": "ari:cloud:trello::list/workspace/66cf7f773c7deb3337d3b14c/6aaf00dd226b68fbb40d7f41",
+      "name": "Pós-hackathon · P1 e P2",
+      "cards": [
+        {
+          "id": "ari:cloud:trello::card/workspace/66cf7f773c7deb3337d3b14c/6aaf01577095f131d776969c",
+          "name": "[P1] Planejar e validar piloto supervisionado após o hackathon",
+          "description": "## Objetivo e prioridade\n\nEvolução posterior ao hackathon. Não competir por tempo com o P0 nem ativar operação comercial real antes de validação.\n\n## Escopo\n\nPlanejar piloto com restaurantes voluntários; medir esforço/completude de fichas, cobertura fiscal, divergência de estoque, ofertas cumpridas e contribuição. Refinar múltiplas fontes fiscais, batches complexos, scheduler persistente resiliente, recuperação e observabilidade.  \nDefinir e homologar pagamento/logística, estados/saga, webhooks idempotentes e reconciliação; esclarecer custos/modelo de receita, termos, privacidade, retenção, acesso e responsabilidades com revisão apropriada.\n\n\n## Validação\n\nRevisão do plano com produto/operação e evidências de homologação quando executada. Não apresentar demo como validação comercial concluída.\n\n## Referência específica\n\n§04, 14, 19, 21; pp. 7–8, 26–27, 35, 38–39.\n\nFonte: IBYARA_GUIDE.pdf v1.0.0. Propostas técnicas e valores de demo não são capacidades já implementadas ou políticas universais. Critérios no checklist; registrar testes/evidências/commit e NOT_RUN quando aplicável.\nOrigem: IB-11.\n\n## Dependências no Trello\n- [Preparar pitch, vídeo de 60 segundos e pacote final do hackathon](https://trello.com/c/zzs7yD8W)",
+          "url": "https://trello.com/c/UA6RNunO/11-p1-planejar-e-validar-piloto-supervisionado-ap%C3%B3s-o-hackathon",
+          "shortUrl": "https://trello.com/c/UA6RNunO",
+          "closed": false,
+          "complete": false,
+          "position": 140737488355328,
+          "lastActivityAt": "2026-09-19T21:45:31.437Z",
+          "startedAt": null,
+          "due": {
+            "date": null,
+            "complete": false
+          },
+          "listId": null,
+          "boardId": null,
+          "labels": [],
+          "labelsHasMore": false,
+          "checklists": [],
+          "checklistsHasMore": false,
+          "members": [],
+          "comments": [],
+          "commentsHasMore": false,
+          "list": null,
+          "board": null
+        },
+        {
+          "id": "ari:cloud:trello::card/workspace/66cf7f773c7deb3337d3b14c/6aaf01584798f045612e0b2b",
+          "name": "[P2] Refinar evolução de PDV, demanda e agentes externos",
+          "description": "## Objetivo e prioridade\n\nRegistrar evolução condicionada a aprendizado do piloto. Fora do caminho crítico do hackathon.\n\n## Escopo\n\nAvaliar integração de PDV, novas fontes/categorias, previsão de demanda e interoperabilidade com agentes externos. Definir contratos, autenticação/escopos federados e protocolo padronizado apenas quando necessário. Comparar previsão com baseline de regras usando dados reais apropriados. Capacidades alimentares adicionais e monetização exigem decisão própria; não incluir prescrição clínica ou substituições silenciosas.\n\n\n## Validação\n\nRevisão dos resultados do piloto, ADRs e experimentos com métricas. Não iniciar implementação nem substituir requisitos do P0 automaticamente.\n\n## Referência específica\n\n§04, 19, 21; pp. 7, 35–36, 38–39.\n\nFonte: IBYARA_GUIDE.pdf v1.0.0. Propostas técnicas e valores de demo não são capacidades já implementadas ou políticas universais. Critérios no checklist; registrar testes/evidências/commit e NOT_RUN quando aplicável.\nOrigem: IB-12.\n\n## Dependências no Trello\n- [Planejar e validar piloto supervisionado após o hackathon](https://trello.com/c/UA6RNunO)",
+          "url": "https://trello.com/c/3K2cAJ6L/12-p2-refinar-evolu%C3%A7%C3%A3o-de-pdv-demanda-e-agentes-externos",
+          "shortUrl": "https://trello.com/c/3K2cAJ6L",
+          "closed": false,
+          "complete": false,
+          "position": 140737488371712,
+          "lastActivityAt": "2026-09-19T21:45:33.072Z",
+          "startedAt": null,
+          "due": {
+            "date": null,
+            "complete": false
+          },
+          "listId": null,
+          "boardId": null,
+          "labels": [],
+          "labelsHasMore": false,
+          "checklists": [],
+          "checklistsHasMore": false,
+          "members": [],
+          "comments": [],
+          "commentsHasMore": false,
+          "list": null,
+          "board": null
+        }
+      ]
+    }
+  ],
+  "hasNextPage": false,
+  "nextCursor": null,
+  "board": {
+    "id": "ari:cloud:trello::board/workspace/66cf7f773c7deb3337d3b14c/6aaf00b6ea6eb660b402300e",
+    "name": "i.byara — Hackathon"
+  }
+}

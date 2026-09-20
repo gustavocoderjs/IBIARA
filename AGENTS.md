@@ -3,6 +3,10 @@
 Leia `docs/IBYARA_GUIDE.md`, `docs/RELEASE_NOTES.md` e a tarefa antes de editar.
 Prioridade: requisitos confirmados > contratos > implementação. Preserve marca e produto.
 
+- Acompanhamento atual: https://trello.com/b/YNokvONE/ibyara-hackathon (Trello substitui Jira).
+- Fundação dos quatro agentes: leia `docs/MVP-FOUNDATION.md` e `docs/API.md`.
+- Contextos/credenciais são por identidade; restaurantes comunicam somente com buyer via router.
+
 - Preço/custo/taxas: domínio determinístico, frações BigInt e centavos inteiros; nunca LLM ou float como autoridade financeira.
 - Receita: preserve quantidade, cru/pronto, rendimento e origem. Ambiguidade permanece pendente.
 - Privacidade: escopo por operador autenticado e projeção por personagem. Não publique custos ou orçamento privado na RFQ.

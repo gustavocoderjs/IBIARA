@@ -2,6 +2,14 @@ import { D1Store, getState, transact } from '@/lib/server/repository';
 import { commandSchema } from '@/lib/domain/commands';
 import { DomainError, nowIso, type Role } from '@/lib/domain/types';
 import { project, visibleEvents } from '@/lib/domain/projection';
+import { env } from 'cloudflare:workers';
+import { configForAgent } from '@/lib/agents/shared/config';
+import { NeuraLakeChat } from '@/lib/agents/shared/neuralake';
+import { customerTurnSchema } from '@/lib/agents/customer/schemas';
+import { customerTurn } from '@/lib/agents/customer/service';
+import { emptyCustomerSession } from '@/lib/agents/customer/state';
+import { draftReadiness } from '@/lib/agents/customer/tools';
+import { agentNegotiationSchema, negotiateWithAgents } from '@/lib/agents/customer/negotiate';
 const headers = { 'Cache-Control': 'no-store', 'Content-Type': 'application/json; charset=utf-8' };
 function owner(req: Request) {
     const id = req.headers.get('oai-authenticated-user-id');
@@ -22,6 +30,11 @@ export async function GET(req: Request) { try {
         return Response.json({ status: 'ok', release: '0.3.0', mode: 'SANDBOX' }, { headers });
     const id = owner(req), store = new D1Store();
     const { state } = await getState(store, id);
+    if (path === 'customer-agent') {
+        const session = state.customerAgent ?? emptyCustomerSession();
+        return Response.json({ session, readiness: draftReadiness(session.draft, state),
+            mode: env.NEURALAKE_MODE === 'live' ? 'NEURALAKE' : 'LOCAL_MOCK' }, { headers });
+    }
     const context = role(req);
     if (path === 'events') {
         const url = new URL(req.url);
@@ -38,7 +51,8 @@ catch (e) {
 } }
 export async function POST(req: Request) { try {
     const id = owner(req);
-    if (new URL(req.url).pathname.split('/').pop() !== 'commands')
+    const path = new URL(req.url).pathname.split('/').pop();
+    if (path !== 'commands' && path !== 'customer-agent')
         throw new DomainError('NOT_FOUND', 'Rota não encontrada.', 404);
     const origin = req.headers.get('Origin');
     if (origin && origin !== new URL(req.url).origin)
@@ -46,7 +60,7 @@ export async function POST(req: Request) { try {
     if (!req.headers.get('Content-Type')?.startsWith('application/json'))
         throw new DomainError('INVALID_CONTENT_TYPE', 'Envie JSON.', 415);
     const raw = await req.text();
-    if (raw.length > 280000)
+    if (raw.length > (path === 'customer-agent' ? 8000 : 280000))
         throw new DomainError('PAYLOAD_TOO_LARGE', 'Arquivo muito grande.', 413);
     let input;
     try {
@@ -55,15 +69,34 @@ export async function POST(req: Request) { try {
     catch {
         throw new DomainError('INVALID_JSON', 'JSON inválido.');
     }
-    const parsed = commandSchema.safeParse(input);
+    const agentNegotiation = path === 'commands' && input?.type === 'agent_negotiate';
+    const schema = path === 'customer-agent' ? customerTurnSchema : agentNegotiation ? agentNegotiationSchema : commandSchema;
+    const parsed = schema.safeParse(input);
     if (!parsed.success)
         throw new DomainError('INVALID_COMMAND', parsed.error.issues.map(x => `${x.path.join('.')}: ${x.message}`).join(';'));
     const key = req.headers.get('Idempotency-Key');
     if (!key || !/^[A-Za-z0-9_-]{8,100}$/.test(key))
         throw new DomainError('IDEMPOTENCY_KEY_REQUIRED', 'Use uma chave de idempotência válida.');
-    const digest = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(parsed.data))))).map(x => x.toString(16).padStart(2, '0')).join('');
-    const r = await transact(new D1Store(), id, parsed.data, key, digest);
-    return Response.json({ result: r.result, replayed: r.replayed, state: project(r.state, parsed.data.scope, nowIso(r.state)) }, { headers });
+    // Preserve digests of existing commercial commands for previously stored retries.
+    const digestInput = path === 'customer-agent' ? `customer-agent:${JSON.stringify(parsed.data)}` : JSON.stringify(parsed.data);
+    const digest = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(digestInput)))).map(x => x.toString(16).padStart(2, '0')).join('');
+    if (path === 'customer-agent') {
+        const config = configForAgent(env, 'buyer');
+        return Response.json(await customerTurn(new D1Store(), id, customerTurnSchema.parse(parsed.data),
+            key, digest, new NeuraLakeChat(config), config.maxCalls), { headers });
+    }
+    if (agentNegotiation) {
+        const niko = configForAgent(env, 'niko'), casa = configForAgent(env, 'casa'), panela = configForAgent(env, 'panela');
+        const r = await negotiateWithAgents(new D1Store(), id, agentNegotiationSchema.parse(parsed.data).rfqId, key, digest, {
+            niko: { provider: new NeuraLakeChat(niko), mode: niko.mode },
+            casa: { provider: new NeuraLakeChat(casa), mode: casa.mode },
+            panela: { provider: new NeuraLakeChat(panela), mode: panela.mode },
+        });
+        return Response.json({ result: r.result, replayed: r.replayed, state: project(r.state, 'buyer', nowIso(r.state)) }, { headers });
+    }
+    const command = commandSchema.parse(parsed.data);
+    const r = await transact(new D1Store(), id, command, key, digest);
+    return Response.json({ result: r.result, replayed: r.replayed, state: project(r.state, command.scope, nowIso(r.state)) }, { headers });
 }
 catch (e) {
     return fail(e);

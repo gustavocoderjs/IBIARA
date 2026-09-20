@@ -27,10 +27,10 @@ Leia `AGENTS.md`, `docs/TEAM.md` e o contrato afetado antes de começar. O nome 
 - Migrações são adicionadas; nunca reescreva uma migração aplicada.
 - Testes cobrem comportamento e riscos, não cópias da implementação.
 - Não inclua `node_modules`, builds, bancos locais, segredos ou `.env` reais em commits.
-- NeuraLake e Agora permanecem mocks até integração explicitamente implementada e validada.
+- NeuraLake tem integração configurável em `lib/agents`, com mock padrão e homologação real pendente. Agora e parser de receitas continuam mocks; ver `docs/MVP-FOUNDATION.md`.
 
 ## Preparação local
 
-Siga o README. Cada pessoa usa seu próprio clone, banco local e `.env`. O clone funciona em modo portátil; `.sites-runtime` é específico da máquina e não é versionado. O workflow CI não precisa de credenciais de NeuraLake, Agora ou produção.
+Siga o README. Cada pessoa usa seu próprio clone, banco local e `.dev.vars`. O clone funciona em modo portátil; `.sites-runtime` é específico da máquina e não é versionado. O workflow CI não precisa de credenciais de NeuraLake, Agora ou produção.
 
 O arquivo `CODEOWNERS` começa com o dono do repositório. Os responsáveis das áreas só serão adicionados quando seus logins e acessos forem conhecidos. As proteções remotas precisam ser ativadas no GitHub; arquivos no repositório não as ativam sozinhos.

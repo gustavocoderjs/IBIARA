@@ -1,8 +1,34 @@
 # Integrações pendentes · contratos internos
 
-Não basta preencher `.env` para ativar integração. Nenhuma variável habilita silenciosamente um fornecedor nesta release.
+Fundação atual: `NEURALAKE_MODE=mock` não faz chamadas externas. `live` ativa o novo
+transporte HTTP para comprador e três restaurantes somente com secrets do servidor.
+O adapter de receita e o Agora abaixo permanecem mocks. Ver `docs/MVP-FOUNDATION.md`.
 
 ## NeuraLake
+
+Implementação adicionada em `lib/agents/shared/neuralake.ts`, baseada no contrato
+chat completions fornecido nos quatro exemplos. System próprio por agente; sem
+histórico de exemplo, Cross Memory, native tools ou response_format presumidos.
+Uma chamada por decisão, timeout 15 s, 512 tokens máximos, JSON validado por Zod.
+Credenciais separadas: CUSTOMER, NIKO, CASA, PANELA. O fallback NEURALAKE_API_KEY
+vale somente para o comprador. Respostas de erro do provedor nunca vão ao cliente.
+Tokens/modelo ausentes são null; custo não é inventado. Contadores persistidos contam
+somente chamadas bem-sucedidas que tiveram gravação confirmada, não fatura do provedor.
+Usar as chaves atuais autorizadas pelo responsável, somente em `.dev.vars` ignorado
+pelo Git ou em secrets do servidor. Rotação não é pré-requisito desta integração.
+
+Validação: 51 testes aprovados e quatro chamadas reais integradas no Worker/D1 local,
+com pedido sandbox, reserva e repetição idempotente. O modelo informado foi `text`;
+custos permaneceram null. Evidência: `docs/evidence/VALIDATION-LIVE-MARKET.md`.
+O contexto de restaurante é criado por chamada com RFQ pública e ofertas próprias.
+Não há memória global; a conversa do comprador é persistida por operador no D1.
+
+O primeiro input humano válido inicializa uma única vez o mercado fictício com
+12 fichas e 16 insumos. Cada restaurante tem seu próprio estoque/custo/política no
+agregado D1; não há três bancos físicos. O cliente começa com conversa vazia e
+precisa revisar e autorizar antes de qualquer pedido. `consult_menu` projeta somente
+cardápio público com preço e disponibilidade calculados; `reset` não repõe estoque,
+não remove pedidos e não reinicia a quota de inferência. Ver `docs/DEMO-MARKET.md`.
 
 Arquivo: `lib/adapters/neuralake.ts`. O parser local é um mock explícito. `NeuraLakeAdapter.complete()` falha com `PROVIDER_UNAVAILABLE` até a implementação real. A interface interna aceita principal, finalidade, texto, referência de contexto e limite de chamadas. Não presume que esses campos existam na API do provedor.
 
@@ -12,7 +38,21 @@ Arquivo: `lib/adapters/neuralake.ts`. O parser local é um mock explícito. `Neu
 - **NEURALAKE-04:** telemetria real de modelo, tokens e cobrança. Ausência é `null`; custo estimado exige tabela datada.
 - **NEURALAKE-05:** smoke tests reais: português, ambiguidade dos bifes, erro/timeout, streaming, parser, quotas, separação entre merchants e buyer.
 
-Gramática do mock: catálogo de patinho, frango, ovo, batata, arroz, feijão, dose medida de óleo/temperos e embalagem. Quantidades numéricas ou um/dois/três, unidades explícitas, rendimentos diretos como `arroz rende 2,5`, `rende 1 porção`, `outros custos variáveis: R$ 0,80`. Não compreende linguagem natural arbitrária. Fragmentos de ingredientes não reconhecidos e alternativas ficam pendentes; o operador precisa corrigir/reformular. Não é permitido declarar compreensão por LLM.
+Gramática do mock de receita: catálogo de 16 insumos (os oito originais mais cenoura,
+abobrinha, brócolis, macarrão, tomate, queijo, lentilha e alface). Quantidades numéricas
+ou um/dois/três, unidades explícitas, rendimentos diretos como `arroz rende 2,5`,
+`rende 1 porção`, `outros custos variáveis: R$ 0,80`. Não compreende linguagem natural
+arbitrária. Fragmentos não reconhecidos e alternativas ficam pendentes; o operador
+precisa corrigir/reformular. Não é permitido declarar compreensão por LLM.
+
+A seleção comercial usa `meal-intent.ts` para rejeitar termos desconhecidos e
+`dishName` quando identifica uma ficha, sempre considerando versões atuais.
+Esse contrato evita que um prato nomeado seja trocado por outro só porque compartilha
+um ingrediente; não é um interpretador universal de cardápios.
+
+`docs/evidence/VALIDATION-AGENTS.md` conserva a evidência histórica de 40 testes com
+mocks. A execução real desta rodada deve ser registrada separadamente, com o
+ambiente efetivamente testado e suas limitações.
 
 ## Agora
 

@@ -1,3 +1,4 @@
+import type { CustomerSession } from '../agents/customer/schemas.ts';
 export type Role = 'merchant' | 'buyer';
 export type Basis = 'AS_PURCHASED' | 'RAW_EDIBLE' | 'COOKED_EDIBLE';
 export type Component = {
@@ -153,6 +154,7 @@ export type RFQ = {
     id: string;
     mandateId: string;
     description: string;
+    dishName?: string;
     required: string[];
     excluded: string[];
     zone: string;
@@ -214,6 +216,9 @@ export type Count = {
     source: string;
 };
 export type State = {
+    demoMarketVersion?: number;
+    customerAgent?: CustomerSession;
+    inference?: { committedCalls: number; knownTokens: number; unknownTokenCalls: number };
     version: 1;
     ownerId: string;
     restaurants: Restaurant[];

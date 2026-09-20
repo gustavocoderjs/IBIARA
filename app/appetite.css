@@ -390,3 +390,59 @@ h1, h2, h3 { text-wrap: balance; }
 @media (max-width: 767px) {
   .metric-row>.metric:last-child, .offer-grid>.offer-card:last-child { grid-column: auto; }
 }
+
+/* The buyer starts with their own message; review is revealed explicitly. */
+.customer-journey { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(250px, 1fr); gap: 28px; align-items: start; }
+.customer-journey-main { min-width: 0; display: grid; gap: 20px; }
+.customer-conversation { padding: 27px; border-top: 3px solid var(--tomato); }
+.customer-chat-heading { display: flex; gap: 15px; align-items: center; margin-bottom: 15px; }
+.customer-chat-heading .icon-tile { flex-shrink: 0; }
+.customer-chat-heading h2 { font-family: var(--font-display); font-size: 28px; line-height: 1.2; }
+.customer-chat-heading p { color: var(--muted-foreground); margin-top: 6px; }
+.customer-mode { padding: 10px 12px; margin-top: 16px; border: 1px solid #eedaa8; border-radius: 8px; color: #785116; background: #fff0ca; font-size: 13px; }
+.customer-mode.live { border-color: #d2dfc9; color: var(--sage); background: #eaf1e4; }
+.customer-chat-log { max-height: 440px; overflow: auto; overscroll-behavior: contain; }
+.customer-message { margin-top: 16px; padding: 13px 15px; border-radius: 10px; background: var(--muted); }
+.customer-message.user { background: #f9ddcd; margin-left: 30px; }
+.customer-message.assistant { margin-right: 22px; }
+.customer-message strong { font-size: 12px; color: #79513c; }
+.customer-message p { margin-top: 5px; font-size: 15px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.65; }
+.customer-thinking { display: flex; align-items: center; gap: 9px; margin-top: 16px; color: var(--muted-foreground); font-size: 13px; }
+.customer-composer { display: grid; gap: 10px; margin-top: 22px; }
+.customer-composer label { font-size: 14px; font-weight: 600; }
+.customer-composer textarea { min-height: 110px; font-size: 16px; }
+.customer-composer-footer { display: flex; gap: 12px; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+.customer-draft, .customer-next-order { margin-top: 22px; padding: 18px; background: #fff5dc; border: 1px solid #eedaa8; border-radius: 10px; }
+.customer-draft h3 { font-family: var(--font-display); font-size: 21px; margin-bottom: 10px; }
+.customer-draft p { line-height: 1.6; font-size: 14px; margin-top: 6px; }
+.customer-next-order p { margin-bottom: 14px; line-height: 1.6; }
+.customer-chat-error { color: #a32c21; margin-top: 14px; font-size: 14px; }
+.customer-fallback { border-top: 1px solid var(--border); margin-top: 20px; padding-top: 16px; }
+.customer-fallback button { margin-top: 10px; }
+.customer-journey-guide { padding: 25px 5px; }
+.customer-journey-guide h2 { font-family: var(--font-display); font-size: 27px; line-height: 1.2; }
+.customer-journey-guide ol { display: grid; gap: 24px; margin-top: 26px; }
+.customer-journey-guide li { display: flex; gap: 13px; }
+.customer-journey-guide li>span { display: grid; place-items: center; flex-shrink: 0; background: #f8dece; color: #942d1c; border-radius: 50%; width: 30px; height: 30px; font-size: 13px; font-weight: 700; }
+.customer-journey-guide li strong { font-size: 14px; }
+.customer-journey-guide li p { color: var(--muted-foreground); font-size: 13px; line-height: 1.6; margin-top: 6px; }
+.customer-journey-guide .meal-search-note { margin-top: 27px; }
+#market-result-title { scroll-margin-top: 25px; }
+@media (max-width: 1050px) {
+  .customer-journey { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .customer-journey-guide { padding: 15px 5px; }
+  .customer-journey-guide ol { grid-template-columns: 1fr 1fr; gap: 20px; }
+}
+@media (max-width: 767px) {
+  .customer-conversation { padding: 22px 18px; }
+  .customer-chat-heading { align-items: flex-start; gap: 11px; }
+  .customer-chat-heading h2 { font-size: 25px; }
+  .customer-chat-heading p { font-size: 14px; }
+  .customer-chat-log { max-height: 50dvh; }
+  .customer-message.user { margin-left: 13px; }
+  .customer-message.assistant { margin-right: 6px; }
+  .customer-composer-footer { align-items: stretch; flex-direction: column; }
+  .customer-composer-footer button { width: 100%; min-height: 46px; }
+  .customer-journey-guide ol { grid-template-columns: 1fr; gap: 18px; }
+  .customer-journey-guide h2 { font-size: 24px; }
+}

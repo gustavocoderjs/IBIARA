@@ -20,7 +20,7 @@ Monólito compartilhado por uma equipe de 3–4 pessoas. Interface em português
 
 ## Capabilities and Constraints
 
-Conversa para montar fichas, estoque, políticas versionadas, compras, mandato privado, negociação, reserva e pedidos em sandbox. NeuraLake e Agora permanecem mocks conforme instrução explícita. Voz do navegador é contingência opcional. Preços em centavos inteiros, quantidades exatas, banco como autoridade. Uma autorização permite uma compra; preço exibido inclui entrega. Pagamento e logística reais não estão implementados.
+Conversa para montar fichas, estoque, políticas versionadas, compras, mandato privado, negociação, reserva e pedidos em sandbox. A fundação dos quatro agentes adiciona integração NeuraLake configurável, ainda pendente de homologação real; o padrão é mock explícito. Cadastro de receitas e Agora continuam mocks. Veja `docs/MVP-FOUNDATION.md`. Voz do navegador é contingência opcional. Preços em centavos inteiros, quantidades exatas, banco como autoridade. Uma autorização permite uma compra; preço exibido inclui entrega. Pagamento e logística reais não estão implementados.
 
 ## Brand Commitments
 

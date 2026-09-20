@@ -3,6 +3,12 @@ import { quote, requirements, available, freeCapacity } from './pricing.ts';
 import { qadd, qsub, money } from './money.ts';
 import { normalize } from '../adapters/neuralake.ts';
 import { catalog } from './fixtures.ts';
+import { mealIntentIssue } from './meal-intent.ts';
+const dishIdentity = (recipe: Recipe) => normalize(recipe.mode === 'PREPRODUCED' ?
+    recipe.name.replace(/ \(pré-produzido\)$/, '') : recipe.name);
+const currentRecipes = (restaurant: Restaurant) => restaurant.recipes.filter(recipe =>
+    recipe.status === 'CONFIRMED' && !restaurant.recipes.some(newer =>
+        newer.status === 'CONFIRMED' && newer.id === recipe.id && newer.version > recipe.version));
 export function validMandate(m: Mandate | undefined, at: string): asserts m is Mandate { demand(m, 'MANDATE_REQUIRED', 'Autorize um limite antes de negociar.'); demand(!m.revoked, 'MANDATE_REVOKED', 'A autorização foi revogada.'); demand(m.expiresAt > at, 'MANDATE_EXPIRED', 'A autorização expirou.'); demand(m.used < m.maxUses, 'MANDATE_EXHAUSTED', 'Esta autorização já foi utilizada.'); }
 // Only the public RFQ enters the merchant service. No buyer mandate/budget.
 export function merchantOffer(r: Restaurant, recipe: Recipe, rfq: RFQ, at: string, requested?: number, previous?: Offer): Offer {
@@ -18,22 +24,30 @@ export function createRfq(s: State, mandateId: string, at: string) {
     demand(!/alerg|celiac|anafil|contaminacao/.test(text), 'RESTRICTION_UNVERIFIED', 'Esta demonstração não verifica alergênicos nem contaminação cruzada. Não posso executar essa compra.');
     const portions = text.match(/(\d+)\s*(?:porcoes|marmitas|pratos|pessoas)/);
     demand(!portions || Number(portions[1]) === 1, 'INTENT_UNSUPPORTED', 'Esta release autoriza uma porção por compra.');
-    const required = catalog.filter(i => i.aliases.some(a => new RegExp(`\\b${a}\\b`).test(text))).map(i => i.id);
+    demand(!mealIntentIssue(m.description, s), 'INTENT_UNSUPPORTED', 'Refeição não reconhecida no cardápio da demo. Escolha um prato ou ingredientes cadastrados; não farei substituições.');
+    const namedRecipe = s.restaurants.flatMap(currentRecipes).filter(r =>
+        text.includes(dishIdentity(r))).sort((a, b) => dishIdentity(b).length - dishIdentity(a).length)[0];
+    const required: string[] = catalog.filter(i => !m.excluded.includes(i.id) && i.aliases.some(a => new RegExp(`\\b${a}\\b`).test(text))).map(i => i.id);
+    if (!required.length && namedRecipe)
+        required.push(...namedRecipe.components.filter(c => !['tempero', 'embalagem'].includes(c.item)).map(c => c.item));
     if (/bife a cavalo/.test(text))
         for (const id of ['patinho', 'ovo', 'arroz', 'feijao'])
             if (!required.includes(id as never))
                 required.push(id as never);
     demand(required.length > 0, 'INTENT_UNSUPPORTED', 'Descreva os ingredientes desejados; o interpretador local não entendeu esta intenção.');
     const rfq: RFQ = { id: uid('rfq'), mandateId: m.id, description: required.map(id => catalog.find(i => i.id === id)?.name ?? id).join(', '), required, excluded: m.excluded, zone: m.zone, maxMinutes: m.maxMinutes, createdAt: at, expiresAt: new Date(Date.parse(at) + 120000).toISOString(), status: 'OPEN', winnerId: null, reasons: [] };
+    if (namedRecipe) rfq.dishName = namedRecipe.name.replace(/ \(pré-produzido\)$/, '');
     s.rfqs.push(rfq);
     event(s, 'RFQ_CREATED', 'buyer', 'Busca aberta', 'Seu agente enviou composição, região e prazo. O limite autorizado continua privado.', rfq.id, at, undefined, { required, zone: rfq.zone, maxMinutes: rfq.maxMinutes });
     for (const r of s.restaurants) {
         if (r.zone !== rfq.zone || r.eta > rfq.maxMinutes || !r.policy || freeCapacity(s, r) <= 0)
             continue;
-        const recipes = r.recipes.filter(x => x.status === 'CONFIRMED' && rfq.required.every(id => x.components.some(c => c.item === id)) && !rfq.excluded.some(id => x.components.some(c => c.item === id)));
-        const latest = recipes.filter(x => !recipes.some(y => y.id === x.id && y.version > x.version));
+        const recipes = currentRecipes(r).filter(x =>
+            (!rfq.dishName || dishIdentity(x) === normalize(rfq.dishName)) &&
+            (!/\bomelete\b/.test(text) || /\bomelete\b/.test(dishIdentity(x))) &&
+            rfq.required.every(id => x.components.some(c => c.item === id)) && !rfq.excluded.some(id => x.components.some(c => c.item === id)));
         const issued: Offer[] = [];
-        for (const recipe of latest) {
+        for (const recipe of recipes) {
             try {
                 issued.push(merchantOffer(r, recipe, rfq, at));
             }
@@ -49,7 +63,7 @@ export function createRfq(s: State, mandateId: string, at: string) {
             r.receiptHistory.push(offer.receipt);
             event(s, 'OFFER_ISSUED', 'both', `${r.name} enviou uma proposta`, `${money(offer.totalCents)} com entrega · ${offer.eta} min`, rfq.id, at, r.id);
         }
-        else if (latest.length) {
+        else if (recipes.length) {
             event(s, 'MERCHANT_DECLINED', 'merchant', 'Participação recusada', 'Nenhuma ficha com custo, política e estoque elegíveis.', rfq.id, at, r.id);
         }
     }
