@@ -106,6 +106,32 @@ const scenarios = [
         }),
         step('Apague o orçamento.', c => { equal(c, 'budget', null); preserve(c, ['budget']); ready(c, false); }),
     ] },
+    { id: 'limite-negativo-reduz-orcamento', purpose: 'Não gastar mais que um valor reduz o teto sem modificar o prato ou os demais dados.', steps: [
+        step(fullBife, c => { equal(c, 'description', 'Bife a cavalo'); budget(c, 4500); ready(c, true); }),
+        step('Não quero gastar mais de 30 reais.', c => {
+            budget(c, 3000); preserve(c, ['budget']); ready(c, true);
+        }),
+    ] },
+    { id: 'prato-curto-substitui-selecao', purpose: 'Um nome curto e identificável muda o prato anterior mesmo sem verbo.', steps: [
+        step(fullBife, c => { equal(c, 'description', 'Bife a cavalo'); budget(c, 4500); ready(c, true); }),
+        step('frango grelhado', c => {
+            equal(c, 'description', 'Frango grelhado com arroz e feijão');
+            preserve(c, ['description']); ready(c, true);
+        }),
+    ] },
+    { id: 'rejeicao-prato-invalida-selecao', purpose: 'Rejeitar o prato remove a seleção sem criar uma exclusão de ingrediente.', steps: [
+        step(fullBife, c => { equal(c, 'description', 'Bife a cavalo'); equal(c, 'excluded', []); ready(c, true); }),
+        step('Não quero mais Bife a cavalo.', c => {
+            equal(c, 'description', null); equal(c, 'excluded', []);
+            preserve(c, ['description']); ready(c, false);
+        }),
+    ] },
+    { id: 'troca-regiao-invalida-revisao', purpose: 'Trocar Butantã por Morumbi mantém o pedido, mas impede revisão pronta fora da região da demo.', steps: [
+        step(fullBife, c => { equal(c, 'description', 'Bife a cavalo'); equal(c, 'zone', 'demo_butanta'); ready(c, true); }),
+        step('sera no morumbi', c => {
+            equal(c, 'zone', 'other'); preserve(c, ['zone']); unsupported(c, 'butanta');
+        }),
+    ] },
     { id: 'nao-regiao-versus-seguranca', purpose: 'Não responde somente à pergunta atual.', steps: [
         step('Quero uma porção de Bife a cavalo, com limite total de R$ 45,00 e prazo máximo de 40 minutos.', c => {
             equal(c, 'zone', null); equal(c, 'foodSafetyConcern', null); equal(c, 'excluded', null); question(c, 'butanta');
@@ -321,7 +347,7 @@ async function runScenario(base, definition) {
 
 async function main() {
     if (!process.argv.includes('--live')) {
-        console.error('Opt-in required: node scripts/verify-adversarial-conversation.mjs --live (31 synthetic turns; real provider calls).');
+        console.error(`Opt-in required: node scripts/verify-adversarial-conversation.mjs --live (${scenarios.reduce((sum, scenario) => sum + scenario.steps.length, 0)} synthetic turns; real provider calls).`);
         process.exitCode = 1; return;
     }
     let base;

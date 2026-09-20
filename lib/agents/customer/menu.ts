@@ -16,6 +16,7 @@ export function publicMenu(state: State, at: string) {
         } catch (error) { if (!(error instanceof DomainError)) throw error; }
         return { restaurantId: restaurant.id, restaurantName: restaurant.name, ...publicRating(restaurant.id, restaurant),
             menuItemId: recipe.id, name: recipe.name,
+            ingredientIds: recipe.components.map(c => c.item),
             ingredients: recipe.components.filter(c => !['embalagem', 'tempero'].includes(c.item))
                 .map(c => catalog.find(i => i.id === c.item)?.name ?? c.item),
             available: totalCents !== null, totalCents, etaMinutes: restaurant.eta };

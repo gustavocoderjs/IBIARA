@@ -6,6 +6,7 @@ import { importXml } from '../adapters/fiscal.ts';
 import { quote, requirements } from './pricing.ts';
 import { createRfq, negotiate, counter, accept, orderAction } from './commerce.ts';
 import { rational, decimal, mul, div, add, compare, qadd, qsub, money } from './money.ts';
+import { assertCustomerPurchaseSupported } from './customer-purchase.ts';
 const scope = z.enum(['merchant', 'buyer']);
 const str = z.string().min(1).max(4000);
 const integer = z.number().int().safe();
@@ -109,6 +110,10 @@ export function runScheduler(s: State, at: string) { if (at >= s.schedule.nextAt
     s.schedule.nextAt = nextCount(at, s.schedule.days, s.schedule.hour);
 } }
 export function execute(s: State, c: Command, at: string): unknown {
+    // Reject before the scheduler or any authorization side effects. Direct commerce
+    // entry points repeat this check because agents also call them without execute.
+    if (['mandate', 'rfq', 'negotiate', 'counter', 'accept'].includes(c.type))
+        assertCustomerPurchaseSupported(s);
     const r = s.restaurants[0];
     runScheduler(s, at);
     switch (c.type) {

@@ -5,6 +5,7 @@ import { normalize } from '../adapters/neuralake.ts';
 import { catalog } from './fixtures.ts';
 import { mealIntentIssue } from './meal-intent.ts';
 import { compareOffers, publicRating } from './ratings.ts';
+import { assertCustomerPurchaseSupported } from './customer-purchase.ts';
 const dishIdentity = (recipe: Recipe) => normalize(recipe.mode === 'PREPRODUCED' ?
     recipe.name.replace(/ \(pré-produzido\)$/, '') : recipe.name);
 const currentRecipes = (restaurant: Restaurant) => restaurant.recipes.filter(recipe =>
@@ -18,6 +19,7 @@ export function merchantOffer(r: Restaurant, recipe: Recipe, rfq: RFQ, at: strin
     return { id: uid('offer'), rfqId: rfq.id, merchantId: r.id, merchantName: r.name, ...publicRating(r.id, r), recipeId: recipe.id, recipeVersion: recipe.version, dish: recipe.name, composition: recipe.components.map(c => catalog.find(i => i.id === c.item)?.name ?? c.item), subtotalCents, deliveryCents: r.deliveryCents, buyerFeeCents: 0, totalCents: subtotalCents + r.deliveryCents, eta: r.eta, expiresAt: new Date(Math.min(Date.parse(at) + r.policy!.offerTtlSeconds * 1000, Date.parse(rfq.expiresAt))).toISOString(), status: 'ISSUED', round: previous ? previous.round + 1 : 0, previousOfferId: previous?.id ?? null, quoteToken: uid('quote'), receipt, requirements: requirements(recipe) };
 }
 export function createRfq(s: State, mandateId: string, at: string) {
+    assertCustomerPurchaseSupported(s);
     const m = s.mandates.find(m => m.id === mandateId);
     validMandate(m, at);
     demand(m.excluded.every(id => catalog.some(i => i.id === id)), 'RESTRICTION_UNVERIFIED', 'Não consigo verificar um dos ingredientes excluídos nesta demonstração.');
@@ -74,6 +76,7 @@ export function createRfq(s: State, mandateId: string, at: string) {
     return { rfqId: rfq.id, status: rfq.status };
 }
 export function counter(s: State, offerId: string, requested: number, at: string) {
+    assertCustomerPurchaseSupported(s);
     const old = s.offers.find(o => o.id === offerId);
     demand(old, 'OFFER_NOT_FOUND', 'Proposta não encontrada.');
     demand(old.status === 'ISSUED' && old.expiresAt > at, 'OFFER_EXPIRED', 'A proposta expirou ou já foi substituída.');
@@ -92,6 +95,7 @@ export function counter(s: State, offerId: string, requested: number, at: string
     return offer;
 }
 export function accept(s: State, offerId: string, quoteToken: string, at: string) {
+    assertCustomerPurchaseSupported(s);
     const o = s.offers.find(o => o.id === offerId);
     demand(o && o.quoteToken === quoteToken, 'INVALID_QUOTE', 'Proposta inválida.');
     demand(o.status === 'ISSUED' && o.expiresAt > at, 'OFFER_EXPIRED', 'Proposta expirada ou indisponível.');
@@ -123,6 +127,7 @@ export function accept(s: State, offerId: string, quoteToken: string, at: string
     return { orderId: order.id };
 }
 export function negotiate(s: State, rfqId: string, at: string) {
+    assertCustomerPurchaseSupported(s);
     const rfq = s.rfqs.find(r => r.id === rfqId);
     demand(rfq, 'RFQ_NOT_FOUND', 'Busca não encontrada.');
     if (rfq.status === 'CLOSED') {

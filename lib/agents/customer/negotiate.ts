@@ -7,6 +7,7 @@ import { restaurantIds, type RestaurantId } from '../shared/router.ts';
 import { consultRestaurant } from '../restaurants/service.ts';
 import type { ChatProvider } from '../shared/neuralake.ts';
 import { recordUsage } from '../shared/telemetry.ts';
+import { assertCustomerPurchaseSupported } from '../../domain/customer-purchase.ts';
 
 export const agentNegotiationSchema = z.object({ type: z.literal('agent_negotiate'),
     scope: z.literal('buyer'), rfqId: z.string().min(1).max(100) }).strict();
@@ -21,6 +22,7 @@ export async function negotiateWithAgents(store: AggregateStore, owner: string, 
         return { state: row.state, result: previous.result, replayed: true };
     }
     const q = row.state.rfqs.find(q => q.id === rfqId), at = nowIso(row.state);
+    assertCustomerPurchaseSupported(row.state);
     demand(q, 'RFQ_NOT_FOUND', 'Busca não encontrada.');
     demand(q.status === 'QUOTED' && q.expiresAt > at, 'RFQ_CLOSED', 'Esta busca não está aberta para negociação.');
     validMandate(row.state.mandates.find(m => m.id === q.mandateId), at);

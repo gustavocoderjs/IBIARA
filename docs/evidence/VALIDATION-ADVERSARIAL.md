@@ -1,5 +1,7 @@
 # Testes disruptivos da conversa — 20/09/2026
 
+Registro histórico do diagnóstico anterior às correções. A repetição dos cenários e as correções estão em [Validação do atendimento guiado](VALIDATION-GUIDED-CUSTOMER.md); os resultados abaixo foram preservados como evidência do problema original.
+
 Versão examinada: `79d487e8b81d2b4d8cd3afe093c2b6188d5aa94d`.
 Escopo: interpretar a mensagem do consumidor, conservar contexto, preparar o
 rascunho e respeitar a fronteira entre conversa e autorização. Esta rodada

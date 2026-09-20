@@ -13,6 +13,7 @@ import { publicMenu } from '../lib/agents/customer/menu.ts';
 import { CUSTOMER_SYSTEM_PROMPT } from '../lib/agents/customer/prompt.ts';
 import { agentDecisionSchema, customerDraftSchema, type AgentUsage } from '../lib/agents/customer/schemas.ts';
 import { draftReadiness } from '../lib/agents/customer/tools.ts';
+import { emptyCustomerSession } from '../lib/agents/customer/state.ts';
 import { configForAgent, type AgentEnvironment } from '../lib/agents/shared/config.ts';
 import { NeuraLakeChat, type ChatProvider, type ChatMessage } from '../lib/agents/shared/neuralake.ts';
 
@@ -40,7 +41,9 @@ class MemoryStore implements AggregateStore {
 }
 
 const messages = [
-    'quero comer um bife',
+    // Quantity is intentionally absent. The later "não" must not fill allergies
+    // while the backend is still asking which quantity the person wants.
+    'quero comer bife',
     '40 reais 50 minutos',
     'sera no morumbi',
     'entao sera no butata',
@@ -77,13 +80,19 @@ try {
     } };
     if (process.argv.includes('--diagnose-region')) {
         // One isolated diagnostic, not a successful replay of the eight-turn conversation.
-        // Match the current service envelope: latest input/question, active-search flag and public menu.
+        // Match the current service envelope, including persisted conversation context.
         const at = new Date().toISOString(), state = initialState(owner, at);
         ensureDemoMarket(state, at);
         const lastQuestion = 'Esta demo atende somente a região de teste Butantã.';
+        const diagnosticSession = emptyCustomerSession();
+        diagnosticSession.draft = { ...diagnosticSession.draft, description: 'Bife a cavalo',
+            budget: '40.00', maxMinutes: 50, zone: 'other' };
+        diagnosticSession.pendingQuestion = null;
         const diagnosticMessages: ChatMessage[] = [
             { role: 'system', content: CUSTOMER_SYSTEM_PROMPT },
-            { role: 'user', content: JSON.stringify({ lastQuestion, hasActiveSearch: false,
+            { role: 'user', content: JSON.stringify({ lastQuestion, pendingQuestion: diagnosticSession.pendingQuestion,
+                currentDraft: diagnosticSession.draft, discovery: diagnosticSession.discovery,
+                hasActiveSearch: false,
                 publicMenu: publicMenu(state, at), currentMessage: 'entao sera no butata' }) },
         ];
         const completion = await provider.complete(diagnosticMessages);
@@ -108,17 +117,33 @@ try {
         const readiness = draftReadiness(session.draft, state);
         const menuRestaurants = ['Marmita Quentinha do Seu Niko', 'Sabor de Casa', 'Cozinha Expressa']
             .filter(name => reply.includes(name));
+        const menu = publicMenu(state, new Date().toISOString());
+        const menuOptions = reply.split('\n').filter(line => menu.some(item =>
+            line.includes(item.restaurantName) && line.includes(item.name)));
         turns.push({ turn: activeTurn, message, schemaValid: customerDraftSchema.safeParse(session.draft).success,
             mode: session.lastUsage?.mode, calls: providerRequests - requestCount, usage: session.lastUsage,
-            draft: session.draft, readiness, menuRestaurants,
+            draft: session.draft, readiness, discovery: session.discovery, pendingQuestion: session.pendingQuestion,
+            menuRestaurants, menuOptionCount: menuOptions.length,
             reply: reply.length > 650 ? `${reply.slice(0, 300)} […] ${reply.slice(-300)}` : reply });
         assert.equal(state.orders.length, 0, 'A conversational input cannot create an order.');
         assert.equal(state.mandates.length, 0, 'A conversational input cannot authorize a purchase.');
         assert.equal(state.rfqs.length, 0, 'Menu consultation cannot open a purchase search.');
         assert.ok(state.restaurants.every(r => r.stock.every(item => item.reserved === '0')));
+        assert.ok(menuOptions.length <= 3, 'Discovery must show at most three dishes per response.');
+        for (const choice of session.discovery?.choices ?? []) assert.ok(menu.some(item =>
+            item.restaurantId === choice.restaurantId && item.menuItemId === choice.menuItemId && item.name === choice.name),
+        'Every displayed option must reference an actual menu item.');
+        assert.equal(session.draft.portions, null, 'No message in this conversation authorizes a quantity.');
+        assert.equal(session.draft.excluded, null, 'No answer to the safety question was supplied.');
+        assert.equal(session.draft.foodSafetyConcern, null, 'A no outside safety context cannot declare absence of allergy.');
+        assert.equal(readiness.ready, false, 'The incomplete draft must stay pending rather than inventing missing answers.');
         if (index === 0) {
             firstDescription = session.draft.description;
-            assert.ok(firstDescription && /bife/i.test(firstDescription), 'First turn must retain the requested beef dish.');
+            assert.ok((firstDescription && /bife/i.test(firstDescription)) || session.discovery?.ingredientIds.includes('patinho') ||
+                /bife/i.test(session.discovery?.nameQuery ?? ''), 'The requested beef intent must remain selected or in discovery.');
+            assert.equal(session.draft.budget, null);
+            assert.equal(session.draft.maxMinutes, null);
+            assert.equal(session.draft.zone, null);
         }
         if (index > 0) assert.equal(session.draft.description, firstDescription,
             'Corrections to other fields must preserve the chosen dish.');
@@ -129,21 +154,22 @@ try {
         if (index === 2) assert.equal(session.draft.zone, 'other', 'Morumbi must remain outside the demo region.');
         if (index === 3) assert.equal(session.draft.zone, 'demo_butanta', 'The explicit region correction was not applied.');
         if (index === 4 || index === 5) {
-            assert.equal(menuRestaurants.length, 3, 'Availability question must show all three simulated restaurant menus.');
+            assert.ok(menuOptions.length > 0 && menuOptions.length <= 3,
+                'Availability questions must show a short list of real dishes, not require every restaurant.');
         }
         if (index >= 4) {
             assert.equal(cents(session.draft.budget!), 4000);
             assert.equal(session.draft.maxMinutes, 50);
             assert.equal(session.draft.zone, 'demo_butanta');
-            assert.deepEqual(session.draft.excluded, []);
-            assert.equal(session.draft.foodSafetyConcern, false);
         }
         if (index === 6) assert.equal(session.draft.selectionPreference, 'BEST_RATED');
         if (index === 7) assert.equal(session.draft.selectionPreference, 'LOWEST_PRICE');
     }
     const finalState = (await store.read(owner))!.state, session = finalState.customerAgent!;
     const readiness = draftReadiness(session.draft, finalState);
-    assert.equal(readiness.ready, true, `Final draft must be ready: ${JSON.stringify(readiness)}`);
+    assert.equal(readiness.ready, false, 'Eight turns without quantity or a safety answer leave an incomplete draft.');
+    assert.ok(readiness.missing.some(question => /porção/i.test(question)), 'Quantity must remain a visible question.');
+    assert.ok(readiness.missing.some(question => /alergias/i.test(question)), 'Safety must remain a visible question.');
     console.log(redact(JSON.stringify({ status: 'PASS',
         turns, providerRequests, models: [...new Set(usages.map(usage => usage.model))],
         reportedTokens: usages.some(usage => usage.tokens === null) ? null : usages.reduce((sum, usage) => sum + usage.tokens!, 0),

@@ -33,6 +33,7 @@ function fake(content: unknown, inspect?: (messages: ChatMessage[]) => void): Ch
 }
 const patch = { description: 'Bife a cavalo', budget: '35.00', portions: 1, maxMinutes: 40,
     zone: 'demo_butanta', excluded: [], foodSafetyConcern: false };
+const completeCustomerRequest = 'Quero uma porção de Bife a cavalo, até 35 reais no total com entrega no Butantã, em até 40 minutos. Não tenho alergias e nenhum ingrediente para excluir.';
 function commercialState(owner = 'one') {
     const at = new Date().toISOString(), state = initialState(owner, at);
     execute(state, { type: 'seed_demo', scope: 'merchant' }, at);
@@ -44,13 +45,30 @@ function commercialState(owner = 'one') {
 
 test('customer extraction persists an unconfirmed draft; never creates mandate or order', async () => {
     const store = new Store();
-    await customerTurn(store, 'one', { message: 'Uma refeição até 35 reais', expectedVersion: 0 },
+    await customerTurn(store, 'one', { message: completeCustomerRequest, expectedVersion: 0 },
         'customer-key', 'body', fake({ tool: 'propose_request', patch }));
     const state = (await store.read('one'))!.state;
     assert.equal(state.customerAgent!.draft.budget, '35.00');
     assert.equal(state.customerAgent!.turns.length, 2);
     assert.equal(draftReadiness(state.customerAgent!.draft).ready, true);
     assert.equal(state.mandates.length, 0); assert.equal(state.orders.length, 0);
+});
+
+test('a complete model patch cannot invent the fields missing from the actual customer input', async () => {
+    const store = new Store();
+    const result = await customerTurn(store, 'ungrounded', { message: 'Uma refeição até 35 reais', expectedVersion: 0 },
+        'ungrounded-key', 'ungrounded-digest', fake({ tool: 'propose_request', patch }));
+    const state = (await store.read('ungrounded'))!.state;
+    const draft = state.customerAgent!.draft;
+    assert.equal(draft.budget, '35.00', 'The explicit budget must survive removal of invented fields.');
+    assert.equal(draft.portions, 1, 'Uma refeição explicitly identifies one portion.');
+    assert.equal(draft.description, null, 'A generic meal does not select the model-proposed Bife a cavalo.');
+    assert.equal(draft.maxMinutes, null);
+    assert.equal(draft.zone, null);
+    assert.equal(draft.excluded, null);
+    assert.equal(draft.foodSafetyConcern, null);
+    assert.equal((result.result as { readiness: { ready: boolean } }).readiness.ready, false);
+    assert.deepEqual(state.mandates, []); assert.deepEqual(state.rfqs, []); assert.deepEqual(state.orders, []);
 });
 
 test('first user message initializes the market and menu tool returns only public restaurant data', async () => {
@@ -64,12 +82,19 @@ test('first user message initializes the market and menu tool returns only publi
     assert.equal(menu.length, 12); assert.ok(menu.every(item => item.available));
     for (const hidden of ['reserved', 'costNumerator', 'policy', 'floorCents', 'safety'])
         assert.ok(!JSON.stringify(menu).includes(hidden));
-    assert.match(state.customerAgent!.turns.at(-1)!.text, /Sabor de Casa/);
+    const reply = state.customerAgent!.turns.at(-1)!.text;
+    const optionLines = reply.split('\n').filter(line => menu.some(item =>
+        line.includes(item.restaurantName) && line.includes(item.name)));
+    assert.ok(optionLines.length > 0 && optionLines.length <= 3,
+        'The first response must show up to three real options, not all twelve dishes.');
+    assert.equal(state.customerAgent!.draft.description, null, 'Listing choices does not select a meal.');
+    assert.equal(state.customerAgent!.draft.budget, null, 'Listed prices are not the customer budget.');
+    assert.equal(state.customerAgent!.draft.maxMinutes, null, 'Listed ETAs are not an authorized deadline.');
 });
 
 test('explicit new order resets the conversation without inference, stock replenishment or quota reset', async () => {
     const store = new Store();
-    await customerTurn(store, 'reset', { message: 'frango até 45 reais', expectedVersion: 0 },
+    await customerTurn(store, 'reset', { message: completeCustomerRequest, expectedVersion: 0 },
         'first-request', 'first-digest', fake({ tool: 'propose_request', patch }));
     const before = (await store.read('reset'))!.state;
     const neverCall: ChatProvider = { async complete() { throw new Error('reset must not infer'); } };
@@ -81,6 +106,64 @@ test('explicit new order resets the conversation without inference, stock replen
     assert.deepEqual(after.restaurants, before.restaurants); assert.equal(result.replayed, false);
     assert.equal((await customerTurn(store, 'reset', { reset: true, expectedVersion: 1 },
         'reset-request', 'reset-digest', neverCall)).replayed, true);
+});
+
+test('provider failure and idempotent replay preserve discovery and the pending question', async () => {
+    const store = new Store();
+    await customerTurn(store, 'discovery-retry', { message: 'Quero algo com ovo.', expectedVersion: 0 },
+        'discovery-initial', 'discovery-initial-body', fake({ tool: 'consult_menu' }));
+    const before = (await store.read('discovery-retry'))!;
+    const session = before.state.customerAgent!;
+    assert.ok(session.discovery?.choices.length);
+    assert.equal(session.pendingQuestion, 'description');
+    const input = { message: 'Meu limite total é 35 reais.', expectedVersion: session.version };
+    let inspected = 0;
+    const inspect = (messages: ChatMessage[]) => {
+        inspected++;
+        const context = JSON.parse(messages.at(-1)!.content);
+        assert.deepEqual(context.currentDraft, session.draft);
+        assert.deepEqual(context.discovery, session.discovery);
+        assert.equal(context.pendingQuestion, session.pendingQuestion);
+        assert.equal(context.currentMessage, input.message);
+        for (const field of ['costNumerator', 'costDenominator', 'floorCents', 'receiptHistory', 'policyHistory'])
+            assert.equal(JSON.stringify(context).includes(field), false, `${field} must stay private to the restaurant.`);
+    };
+    await assert.rejects(customerTurn(store, 'discovery-retry', input, 'discovery-next', 'discovery-next-body', {
+        async complete(messages) { inspect(messages); throw new DomainError('PROVIDER_UNAVAILABLE', 'Synthetic failure', 503); },
+    }), rejects('PROVIDER_UNAVAILABLE'));
+    assert.deepEqual(await store.read('discovery-retry'), before, 'A failed turn keeps choices, pending question, version and quota.');
+    await customerTurn(store, 'discovery-retry', input, 'discovery-next', 'discovery-next-body',
+        fake({ tool: 'propose_request', patch: { budget: '35.00' } }, inspect));
+    const persisted = await store.read('discovery-retry');
+    const replay = await customerTurn(store, 'discovery-retry', input, 'discovery-next', 'discovery-next-body', {
+        async complete() { throw new Error('Replay must not infer.'); },
+    });
+    assert.equal(replay.replayed, true);
+    assert.equal(inspected, 2);
+    assert.deepEqual(await store.read('discovery-retry'), persisted, 'Replay cannot rewrite the successful discovery context.');
+});
+
+test('reset clears meal discovery but preserves an unretracted safety concern and exclusions', async () => {
+    const store = new Store();
+    await customerTurn(store, 'safe-reset', { expectedVersion: 0,
+        message: 'Quero algo com ovo, sem queijo. Limite total de 45 reais, prazo de 40 minutos, entrega no Butantã. Tenho alergia a ovo.' },
+    'safety-initial', 'safety-initial-body', fake({ tool: 'consult_menu' }));
+    const before = (await store.read('safe-reset'))!.state;
+    assert.equal(before.customerAgent!.draft.foodSafetyConcern, true);
+    assert.ok(before.customerAgent!.draft.excluded?.includes('queijo'));
+    assert.ok(before.customerAgent!.discovery?.ingredientIds.includes('ovo'));
+    await customerTurn(store, 'safe-reset', { reset: true, expectedVersion: before.customerAgent!.version },
+        'safety-reset', 'safety-reset-body', { async complete() { throw new Error('Reset must not infer.'); } });
+    const after = (await store.read('safe-reset'))!.state;
+    const expected = emptyCustomerSession();
+    assert.deepEqual(after.customerAgent!.draft, { ...expected.draft, foodSafetyConcern: true,
+        excluded: before.customerAgent!.draft.excluded });
+    assert.deepEqual(after.customerAgent!.discovery, expected.discovery);
+    assert.equal(after.customerAgent!.pendingQuestion, expected.pendingQuestion);
+    assert.deepEqual(after.customerAgent!.turns, []);
+    assert.equal(after.customerAgent!.calls, before.customerAgent!.calls);
+    assert.deepEqual(after.restaurants, before.restaurants);
+    assert.equal(draftReadiness(after.customerAgent!.draft, after).ready, false);
 });
 
 test('customer context excludes merchant secrets and other owners; replay skips inference', async () => {
@@ -131,7 +214,7 @@ test('one format repair validates the same contract, counts both calls and canno
         return { content: calls === 1 ? 'Resposta fora do JSON' : JSON.stringify({ tool: 'propose_request', patch }),
             usage: { mode: 'NEURALAKE', model: 'test', tokens: 7, cost: null } };
     } };
-    const input = { message: 'uma refeição até 35 reais', expectedVersion: 0 };
+    const input = { message: completeCustomerRequest, expectedVersion: 0 };
     await customerTurn(store, 'repair', input, 'repair-key', 'repair-digest', provider);
     const state = (await store.read('repair'))!.state;
     assert.equal(calls, 2); assert.equal(state.customerAgent!.calls, 2);

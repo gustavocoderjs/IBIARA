@@ -28,10 +28,20 @@ export type CustomerDraft = z.infer<typeof customerDraftSchema>;
 export type AgentDecision = z.infer<typeof agentDecisionSchema>;
 export type CustomerTurn = z.infer<typeof customerTurnSchema>;
 export type AgentUsage = { mode: 'NEURALAKE' | 'LOCAL_MOCK'; model: string | null; tokens: number | null; cost: null };
+export type CustomerDiscovery = {
+    ingredientIds: string[];
+    preferences: string[];
+    choices: { restaurantId: string; menuItemId: string; name: string }[];
+    offset: number;
+    nameQuery?: string;
+};
 export type CustomerSession = {
     version: number;
     draft: CustomerDraft;
     turns: { role: 'user' | 'assistant'; text: string; at: string }[];
     calls: number;
     lastUsage: AgentUsage | null;
+    // Optional for previously persisted workspaces; never part of the purchase mandate.
+    discovery?: CustomerDiscovery;
+    pendingQuestion?: keyof CustomerDraft | null;
 };

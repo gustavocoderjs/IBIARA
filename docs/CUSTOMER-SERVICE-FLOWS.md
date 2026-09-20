@@ -1,6 +1,6 @@
 # Atendimento guiado da Byara — proposta para o MVP
 
-**Status: proposta de comportamento e critérios de aceite; não representa funcionalidades implementadas ou testes executados.**
+**Status: roteiro de referência, com a fundação do atendimento guiado implementada em 20/09/2026.** A implementação separa descoberta e pedido, limita listas a três pratos, resolve a opção da última lista, preserva contexto e exige evidência textual para limites comerciais. As sugestões de interface e extensões descritas adiante continuam propostas quando não indicadas no [relatório de validação](evidence/VALIDATION-GUIDED-CUSTOMER.md).
 
 Data: 20/09/2026. Escopo: conversa do consumidor, descoberta de pratos e preparação do pedido em sandbox. Referências: `AGENTS.md`, `PRODUCT.md`, `docs/IBYARA_GUIDE.md`, catálogo em `lib/domain/demo-market.ts` e projeção em `lib/agents/customer/menu.ts`.
 

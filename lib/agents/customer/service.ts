@@ -25,6 +25,11 @@ export async function customerTurn(store: AggregateStore, owner: string, input: 
     if ('reset' in input) {
         state.customerAgent = { ...emptyCustomerSession(), version: session.version + 1,
             calls: session.calls, lastUsage: session.lastUsage };
+        // Starting another draft is not a retraction of an unresolved safety concern.
+        if (session.draft.foodSafetyConcern === true) {
+            state.customerAgent.draft.foodSafetyConcern = true;
+            state.customerAgent.draft.excluded = session.draft.excluded;
+        }
         const result = { session: state.customerAgent, readiness: draftReadiness(state.customerAgent.draft), offers: [] };
         state.idempotency[key] = { digest, result };
         if (!await store.compareAndSwap(owner, row.revision, state, at))
@@ -44,17 +49,20 @@ export async function customerTurn(store: AggregateStore, owner: string, input: 
         // current input separate so region/budget corrections do not re-extract a dish.
         { role: 'user', content: JSON.stringify({
             lastQuestion: lastAssistantText ?? null,
+            pendingQuestion: session.pendingQuestion ?? null,
+            currentDraft: session.draft, discovery: session.discovery ?? null,
             hasActiveSearch: !!activeRfq, publicMenu: publicMenu(state, at),
             currentMessage: input.message,
         }) },
     ];
     // External inference is outside the CAS transaction; never retry it inside a write loop.
     const { decision, completion, completions } = await customerDecision(provider, messages, maxCalls - session.calls);
-    const tool = runCustomerTool(decision, session.draft, state, at, input.message, lastAssistantText);
+    const tool = runCustomerTool(decision, session.draft, state, at, input.message, lastAssistantText, session);
     const reply = completion.usage.mode === 'LOCAL_MOCK' ?
         'Modo de teste local: a IA não está conectada. Use o formulário abaixo para definir e autorizar seu pedido.' : tool.reply;
     state.customerAgent = {
         version: session.version + 1, draft: tool.draft,
+        discovery: tool.discovery, pendingQuestion: tool.pendingQuestion,
         turns: [...session.turns, { role: 'user' as const, text: input.message, at },
             { role: 'assistant' as const, text: reply, at }].slice(-12),
         calls: session.calls + completions.filter(c => c.usage.mode === 'NEURALAKE').length, lastUsage: completion.usage,

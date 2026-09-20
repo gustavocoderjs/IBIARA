@@ -27,12 +27,22 @@ necessário substituí-las para executar a integração. `.dev.vars` fica no `.g
 este repositório mantém somente os nomes das variáveis e valores vazios de exemplo.
 
 Use a conversa do cliente → enviar intenção → revisar no formulário → autorizar compra.
-Perguntar pelo cardápio consulta nomes, composição, disponibilidade e preços calculados;
-não cria pedido. **Novo pedido** limpa a conversa, preservando estoque, pedidos e quota.
+Perguntar pelo cardápio mostra até três opções filtradas, com ingredientes, disponibilidade,
+preços calculados e notas simuladas. “Mais opções” continua a lista; “a segunda” escolhe
+somente entre as últimas opções exibidas. Explorar um ingrediente não confirma um prato.
+A escolha é do prato; o restaurante é definido na busca autorizada, pelo critério escolhido.
+Nenhuma dessas consultas cria pedido.
+
+Os campos do pedido exigem evidência na mensagem ou resposta à pergunta pendente;
+a saída da IA não pode fornecer números ausentes como orçamento, quantidade ou prazo.
+Uma preocupação alimentar declarada ou uma quantidade incompatível também bloqueiam
+o caminho manual e o aceite pelo backend. **Novo pedido** reinicia conversa e descoberta,
+preservando estoque, pedidos e quota; mantém uma preocupação alimentar ainda não
+retratada explicitamente e suas exclusões.
 Cada resultado identifica modo real ou mock. Não há fallback silencioso quando o provedor falha.
 O cadastro da cozinha continua usando parser local; Agora/Cross Memory continuam desconectados.
 Evidência histórica da fundação: [VALIDATION-AGENTS.md](docs/evidence/VALIDATION-AGENTS.md)
-(40 testes e fluxo com mocks). Nesta ampliação, 51 testes passaram e o fluxo real dos
+(40 testes e fluxo com mocks). Na ampliação anterior, 51 testes passaram e o fluxo real dos
 quatro agentes passou no Worker/D1 local: frango do Niko por R$ 37,90, reserva e
 repetição idempotente. Veja [VALIDATION-LIVE-MARKET.md](docs/evidence/VALIDATION-LIVE-MARKET.md).
 Backlog: https://trello.com/b/YNokvONE/ibyara-hackathon.
@@ -126,7 +136,7 @@ unitários existentes não significa que o atendimento livre está validado.
 1. Abra a conversa vazia do cliente e envie **Quais pratos posso pedir?** O primeiro turno válido prepara o mercado simulado; nenhum pedido é criado.
 2. Informe a refeição, uma porção, limite com entrega, prazo, região Butantã e eventuais exclusões. Exemplo: **Quero uma porção de Bife a cavalo, até R$ 35 com entrega, em até 40 minutos no Butantã. Não excluo ingredientes e não tenho alergias.**
 3. Responda às pendências, revise o rascunho no formulário e autorize uma compra sandbox. Só então o comprador consulta os restaurantes e o motor negocia/reserva. No cenário inicial, o bife do Niko fecha em R$ 30,90.
-4. Recarregue a página para verificar persistência. **Novo pedido** reinicia a conversa sem apagar transações ou repor estoque.
+4. Recarregue a página para verificar persistência. **Novo pedido** reinicia conversa e descoberta sem apagar transações, repor estoque ou retirar uma preocupação alimentar não retratada.
 5. Para demonstrar consumo, entre em **Restaurante → Pedidos** e inicie o preparo de um pedido do Niko. A reserva vira consumo uma única vez.
 6. Para demonstrar reconciliação, use **Contagem e rotina**, informe `1 kg de frango cru, contagem exata, estoque principal, agora.`, revise e confirme. Os outros itens ficam preservados.
 
@@ -150,7 +160,7 @@ identifica a contingência local e orienta o preenchimento manual; ela não fing
 
 | Área | Estado |
 |---|---|
-| NeuraLake comprador/restaurantes | Transporte HTTP implementado, configurável em `mock` ou `live`; smoke real isolado do comprador via Node passou, fluxo dos quatro pelo Worker ainda em validação |
+| NeuraLake comprador/restaurantes | Transporte HTTP configurável em `mock` ou `live`; o fluxo local dos quatro agentes tem evidência em `VALIDATION-LIVE-MARKET.md`; resultados e limites da conversa guiada em `VALIDATION-GUIDED-CUSTOMER.md` |
 | Parser de onboarding | Mock local baseado em gramática; integração de receita com LLM permanece pendente |
 | Agora | Adapter mock que falha explicitamente; ditado/leitura do navegador opcionais |
 | Cross Memory | Desativada e não validada |
@@ -167,13 +177,15 @@ identifica a contingência local e orienta o preenchimento manual; ela não fing
 O comprador pode priorizar **menor preço** ou **melhor avaliação**, pela conversa ou
 na revisão. Notas e contagens são simuladas e identificadas na interface. Maior nota
 pode vencer com maior espera/preço, sempre dentro dos limites autorizados. Evidências
-dos 69 testes, conversa real e compra por avaliação: [validação](docs/evidence/VALIDATION-CONVERSATION.md).
+da rodada anterior, com 69 testes, conversa real e compra por avaliação: [validação](docs/evidence/VALIDATION-CONVERSATION.md).
+O atendimento guiado e as proteções atuais estão registrados na
+[validação desta rodada](docs/evidence/VALIDATION-GUIDED-CUSTOMER.md).
 Para verificar a interface sem mexer na conversa local habitual, use
 `node scripts/preview-demo.mjs --isolated` (porta 5174, Worker na 4173).
 
 - `lib/domain`: modelos, aritmética, preço, orquestração comercial, comandos e transações.
 - `lib/domain/demo-market.ts`: preparação idempotente dos cardápios/estoques; `meal-intent.ts`: vocabulário conservador que rejeita termos fora do catálogo.
-- `lib/agents`: conversa e cardápio público do cliente, três contextos de restaurante, schemas, roteador e transporte NeuraLake.
+- `lib/agents`: conversa, descoberta de pratos e validação da origem dos campos do cliente; três contextos de restaurante, schemas, roteador e transporte NeuraLake. `currentDraft`, `discovery` e `pendingQuestion` são contexto privado do comprador e não entram na RFQ dos restaurantes.
 - `lib/adapters`: fronteiras NeuraLake, Agora e fiscal.
 - `lib/server/repository.ts`: implementação D1; uma linha por operador com revisão otimista.
 - `app/api/v1/[...path]/route.ts`: autenticação, limites, schemas, comandos e eventos.
@@ -193,9 +205,12 @@ Evidências da experiência mobile/voz e limitações de execução: `docs/evide
 
 As 12 fichas da demo usam dez imagens de pratos, incluindo nove novas ilustrações
 geradas por IA. Assets responsivos e prompts: [registro de imagens](docs/IMAGE_ASSETS.md).
-O desenho proposto para descoberta, recomendação e esclarecimentos da Byara está em
+O roteiro de descoberta, recomendação e esclarecimentos da Byara está em
 [atendimento guiado](docs/CUSTOMER-SERVICE-FLOWS.md), com dez cenários e 22 critérios
-de aceite a implementar. Esse documento não declara a nova conversa implementada.
+de aceite. A implementação agora mantém filtros, última lista e pergunta pendente,
+faz esclarecimentos e exige origem textual para os campos do pedido. Consulte a
+[evidência da rodada](docs/evidence/VALIDATION-GUIDED-CUSTOMER.md) para execução e limites;
+o roteiro, por si só, não comprova homologação de atendimento livre.
 
 A 0.3.0 traz fotografia gastronômica ilustrativa, paleta tomate/açafrão/cerâmica, fontes locais e hierarquia de compra. O formulário explicita autorização para uma compra e total com entrega; os cálculos continuam no domínio.
 

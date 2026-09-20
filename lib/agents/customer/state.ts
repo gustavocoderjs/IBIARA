@@ -6,5 +6,6 @@ export function emptyCustomerSession(): CustomerSession {
         draft: { description: null, budget: null, portions: null, maxMinutes: null,
             zone: null, excluded: null, foodSafetyConcern: null, selectionPreference: 'LOWEST_PRICE' },
         turns: [], calls: 0, lastUsage: null,
+        discovery: { ingredientIds: [], preferences: [], choices: [], offset: 0 }, pendingQuestion: 'description',
     };
 }

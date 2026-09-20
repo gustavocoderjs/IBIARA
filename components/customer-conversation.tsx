@@ -74,7 +74,8 @@ export function CustomerConversation({ disabled, completedOrderAt, onReview, onD
     const mode = view?.session.lastUsage?.mode ?? view?.mode;
     const hasDraft = draft && (draft.selectionPreference === 'BEST_RATED' ||
         Object.entries(draft).some(([field, value]) => field !== 'selectionPreference' && value != null));
-    const canUseFallback = !needsNewRequest && Boolean(error || (mode === 'LOCAL_MOCK' && lastUserTurn));
+    const unresolvedRestriction = draft?.foodSafetyConcern === true || (draft?.portions != null && draft.portions !== 1);
+    const canUseFallback = !needsNewRequest && !unresolvedRestriction && Boolean(error || (mode === 'LOCAL_MOCK' && lastUserTurn));
 
     return <section className="panel customer-conversation" aria-labelledby="customer-chat-title">
         <div className="customer-chat-heading"><span className="icon-tile"><MessageCircle size={23}/></span><div><h2 id="customer-chat-title">Primeiro, conte para a Byara.</h2><p>O que você gostaria de comer hoje?</p></div></div>
