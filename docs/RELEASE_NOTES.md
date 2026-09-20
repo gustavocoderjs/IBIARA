@@ -1,3 +1,15 @@
+# Pós-0.3.0 · correção de versões e plano gratuito
+
+Data: 20/09/2026. SANDBOX.
+
+- Novas RFQs consideram a última ficha confirmada antes de verificar ingredientes e exclusões. Uma revisão incompatível não reativa uma versão antiga.
+- Propostas já emitidas preservam composição e valor até expirar; aceite mantém as verificações de mandato e disponibilidade.
+- Dois testes de regressão adicionados. 31 testes, TypeScript, lint e build aprovados.
+- `HACKATHON_FREE.md` documenta infraestrutura sem novas contratações e a opção Supabase Free. Cadastro aberto; conta, projeto e integração ainda pendentes.
+- GitHub habilitado e documentação de equipe atualizada. Mantidos monólito, D1 e integrações em mock.
+
+---
+
 # 0.3.0 · identidade gastronômica e compra
 
 Data: 19/09/2026. SANDBOX. Alteração visual solicitada pelo usuário.

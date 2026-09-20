@@ -31,7 +31,7 @@ Ativar em `main` depois do primeiro push:
 - Squash merge habilitado e exclusão automática de branches após merge.
 - Revisão dos CODEOWNERS para contratos compartilhados; atualizar o arquivo com logins reais depois dos convites.
 
-**Estado desta entrega:** configurações e convites remotos ainda não aplicados. A conexão GitHub devolveu `404` para o repositório informado; sem acesso não é possível verificar sua existência, conteúdo, permissões ou proteção. CI preparado no código, execução remota pendente do envio.
+**Atualização de 20/09/2026:** o acesso GitHub foi habilitado, o código foi enviado e a execução remota do fluxo existente foi verificada com sucesso. O bloqueio `404` descrito nas releases anteriores é histórico. Convites e proteções de branch não foram aplicados. Para o hackathon, não é necessário ampliar o pipeline; seguir `HACKATHON_FREE.md`.
 
 ## Rotina curta
 

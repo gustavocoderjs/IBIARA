@@ -13,6 +13,39 @@ const command = (s: State, c: Record<string, unknown>) => execute(s, commandSche
 function seeded() { const s = initialState('test', at); command(s, { type: 'seed_demo', scope: 'merchant' }); return s; }
 function mandate(s: State, maxCents = 3500) { return command(s, { type: 'mandate', scope: 'buyer', maxCents, description: 'Bife a cavalo com arroz, feijão e batata', maxMinutes: 40, zone: 'demo_butanta', excluded: [], confirmed: true }).mandateId as string; }
 const rejects = (code: string) => (e: unknown) => e instanceof DomainError && e.code === code;
+test('recipe revision: incompatible active version never revives an obsolete recipe', () => {
+    const s = seeded(), r = s.restaurants[0];
+    const m = command(s, { type: 'mandate', scope: 'buyer', description: 'Bife a cavalo', maxCents: 5000, maxMinutes: 40, zone: 'demo_butanta', excluded: ['frango'], confirmed: true });
+    const originalRfq = createRfq(s, m.mandateId, at);
+    const original = s.offers.find(o => o.rfqId === originalRfq.rfqId && o.merchantId === r.id)!;
+    assert.equal(original.recipeVersion, 1);
+    const snapshot = structuredClone(original);
+
+    command(s, { type: 'revise_recipe', scope: 'merchant', recipeId: r.recipes[0].id });
+    command(s, { type: 'turn', scope: 'merchant', text: '50 g de frango cru.' });
+    command(s, { type: 'confirm_recipe', scope: 'merchant', expectedVersion: 2 });
+    assert.ok(r.recipes[1].components.some(c => c.item === 'frango'));
+
+    const revisedRfq = createRfq(s, m.mandateId, at);
+    assert.equal(s.offers.some(o => o.rfqId === revisedRfq.rfqId && o.merchantId === r.id), false);
+    assert.ok(s.offers.some(o => o.rfqId === revisedRfq.rfqId && o.merchantId !== r.id));
+    assert.deepEqual(original, snapshot);
+
+    // Existing, unexpired offers retain the composition that was quoted.
+    accept(s, original.id, original.quoteToken, at);
+    assert.equal(s.orders[0].requirements.some(c => c.item === 'frango'), false);
+    assert.equal(s.orders[0].totalCents, snapshot.totalCents);
+});
+test('recipe revision: new offers use the latest compatible confirmed version', () => {
+    const s = seeded(), r = s.restaurants[0];
+    command(s, { type: 'revise_recipe', scope: 'merchant', recipeId: r.recipes[0].id });
+    command(s, { type: 'turn', scope: 'merchant', text: '250 g de patinho cru e limpo.' });
+    command(s, { type: 'confirm_recipe', scope: 'merchant', expectedVersion: 2 });
+    const q = createRfq(s, mandate(s, 5000), at);
+    const offer = s.offers.find(o => o.rfqId === q.rfqId && o.merchantId === r.id)!;
+    assert.equal(offer.recipeVersion, 2);
+    assert.equal(offer.requirements.find(c => c.item === 'patinho')!.quantity, '250');
+});
 test('AT-01/02/03: onboarding asks about weight, basis and cooked yields; full conversation confirms', () => { const s = initialState('a', at); command(s, { type: 'turn', scope: 'merchant', text: DEMO_TURNS[0] }); assert.equal(s.restaurants[0].name, 'Marmita Quentinha do Seu Niko'); assert.match(s.restaurants[0].address, /488/); command(s, { type: 'turn', scope: 'merchant', text: DEMO_TURNS[1] }); assert.equal(s.restaurants[0].draft!.components.find(c => c.item === 'patinho')!.quantity, null); assert.equal(s.restaurants[0].draft!.components.find(c => c.item === 'arroz')!.yield, null); for (const text of DEMO_TURNS.slice(2))
     command(s, { type: 'turn', scope: 'merchant', text }); assert.equal(s.restaurants[0].recipes.length, 1); const recipe = s.restaurants[0].recipes[0]; assert.equal(recipe.components.length, 7); assert.equal(requirements(recipe).find(c => c.item === 'arroz')!.quantity, '100'); });
 test('AT-04: recipe revision preserves confirmed version', () => { const s = seeded(), r = s.restaurants[0], id = r.recipes[0].id; command(s, { type: 'revise_recipe', scope: 'merchant', recipeId: id }); command(s, { type: 'turn', scope: 'merchant', text: '250 gramas de patinho cru e limpo.' }); command(s, { type: 'confirm_recipe', scope: 'merchant', expectedVersion: 2 }); assert.equal(r.recipes[0].components[0].quantity, '200'); assert.equal(r.recipes[1].components[0].quantity, '250'); });

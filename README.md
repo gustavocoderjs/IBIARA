@@ -4,7 +4,9 @@ Marketplace alimentício bilateral com agentes de restaurante e consumidor. Mon�
 
 ## Equipe e colaboração
 
-Repositório de destino: [gustavocoderjs/IBIARA](https://github.com/gustavocoderjs/IBIARA). GitHub Flow, revisão por outra pessoa e CI em cada PR. Veja [CONTRIBUTING.md](CONTRIBUTING.md) e a [divisão para 3–4 pessoas](docs/TEAM.md). Convites e proteções de branch devem ser configurados pelo administrador; veja os passos em `docs/TEAM.md`.
+Repositório: [gustavocoderjs/IBIARA](https://github.com/gustavocoderjs/IBIARA), com código enviado e execução remota do fluxo existente verificada. Veja [CONTRIBUTING.md](CONTRIBUTING.md) e a [divisão para 3–4 pessoas](docs/TEAM.md). Convites e proteções de branch dependem do administrador.
+
+Para o hackathon, seguir o [plano de infraestrutura gratuita](docs/HACKATHON_FREE.md): aproveitar a hospedagem e o D1 atuais; Supabase Free é a opção de próximo estágio para banco e login externos, ainda sem integração. Não é necessário ampliar o pipeline para a demonstração.
 
 ## Mobile, desktop e voz
 

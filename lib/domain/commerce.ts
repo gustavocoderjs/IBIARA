@@ -30,10 +30,13 @@ export function createRfq(s: State, mandateId: string, at: string) {
     for (const r of s.restaurants) {
         if (r.zone !== rfq.zone || r.eta > rfq.maxMinutes || !r.policy || freeCapacity(s, r) <= 0)
             continue;
-        const recipes = r.recipes.filter(x => x.status === 'CONFIRMED' && rfq.required.every(id => x.components.some(c => c.item === id)) && !rfq.excluded.some(id => x.components.some(c => c.item === id)));
-        const latest = recipes.filter(x => !recipes.some(y => y.id === x.id && y.version > x.version));
+        const confirmed = r.recipes.filter(x => x.status === 'CONFIRMED');
+        // Compatibility applies to the active version. Filtering first could
+        // resurrect an obsolete recipe when its replacement is incompatible.
+        const latest = confirmed.filter(x => !confirmed.some(y => y.id === x.id && y.version > x.version));
+        const compatible = latest.filter(x => rfq.required.every(id => x.components.some(c => c.item === id)) && !rfq.excluded.some(id => x.components.some(c => c.item === id)));
         const issued: Offer[] = [];
-        for (const recipe of latest) {
+        for (const recipe of compatible) {
             try {
                 issued.push(merchantOffer(r, recipe, rfq, at));
             }
@@ -49,7 +52,7 @@ export function createRfq(s: State, mandateId: string, at: string) {
             r.receiptHistory.push(offer.receipt);
             event(s, 'OFFER_ISSUED', 'both', `${r.name} enviou uma proposta`, `${money(offer.totalCents)} com entrega · ${offer.eta} min`, rfq.id, at, r.id);
         }
-        else if (latest.length) {
+        else if (compatible.length) {
             event(s, 'MERCHANT_DECLINED', 'merchant', 'Participação recusada', 'Nenhuma ficha com custo, política e estoque elegíveis.', rfq.id, at, r.id);
         }
     }
