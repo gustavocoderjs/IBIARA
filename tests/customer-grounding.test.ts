@@ -119,6 +119,8 @@ test('exclusions require cited foods and exclusion intent; new restrictions pres
     assert.deepEqual(groundCustomerPatch({ excluded: ['amendoim'] }, empty(), 'não posso comer amendoim').excluded, ['amendoim']);
     assert.deepEqual(groundCustomerPatch({ excluded: [] }, draft, 'frango'), {});
     assert.deepEqual(groundCustomerPatch({}, draft, 'nenhum ingrediente a excluir').excluded, []);
+    assert.deepEqual(groundCustomerPatch({ excluded: ['Ovo', 'ovo'] }, empty(),
+        'Agora quero excluir ovo. Sem ovo, por favor. Não substitua meu prato.').excluded, ['ovo']);
     assert.equal(groundCustomerPatch({}, empty(), 'sem alergias').excluded, undefined);
     assert.deepEqual(groundCustomerPatch({ description: 'Omelete', excluded: [] }, empty(),
         'não me passe pratos com queijo'), { excluded: ['queijo'] });

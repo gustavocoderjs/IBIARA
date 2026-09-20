@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import type { RFQ, Offer, Recipe, Stock } from '../../domain/types.ts';
 import { publicRating } from '../../domain/ratings.ts';
+import { deliveryPointIds, distanceMeters } from '../../domain/delivery.ts';
+import { demand } from '../../domain/types.ts';
 
 const id = z.string().min(1).max(100);
 const money = z.number().int().safe().nonnegative();
@@ -9,6 +11,8 @@ export const restaurantRequestSchema = z.object({
     dishName: z.string().min(1).max(200).optional(),
     required: z.array(id).max(30), excluded: z.array(id).max(20),
     quantity: z.literal(1), zone: z.string().min(1).max(100),
+    deliveryPointId: z.enum(deliveryPointIds).nullable().optional(),
+    distanceMeters: z.number().int().nonnegative().nullable().optional(), locationIsDemo: z.boolean().optional(),
     maxMinutes: z.number().int().min(1).max(180), expiresAt: z.string().datetime(),
 }).strict();
 export const priceQuoteSchema = z.object({
@@ -20,6 +24,7 @@ export const restaurantOfferSchema = z.object({
     recipeId: id, recipeVersion: z.number().int().positive(), dish: z.string().min(1).max(200),
     composition: z.array(z.string().max(200)).max(30), quantity: z.literal(1),
     price: priceQuoteSchema, etaMinutes: z.number().int().positive(),
+    distanceMeters: z.number().int().nonnegative().nullable().optional(), locationIsDemo: z.boolean().optional(),
     ratingTenths: z.number().int().min(0).max(50).nullable(),
     ratingCount: z.number().int().safe().nonnegative(), ratingIsDemo: z.boolean(),
     expiresAt: z.string().datetime(), executionMode: z.literal('SANDBOX'),
@@ -31,9 +36,11 @@ export type MenuItem = Pick<Recipe, 'id' | 'name' | 'version' | 'status' | 'comp
 export type Ingredient = Pick<Stock, 'id' | 'name' | 'unit' | 'basis'>;
 
 export function toRestaurantRequest(q: RFQ, restaurantId: string): RestaurantRequest {
+    demand(!q.restaurantId || q.restaurantId === restaurantId, 'RESTAURANT_MISMATCH', 'A busca é exclusiva do restaurante escolhido.');
     return restaurantRequestSchema.parse({ protocol: 'ibyara.exchange.v1', rfqId: q.id, restaurantId,
         ...(q.dishName ? { dishName: q.dishName } : {}), required: q.required, excluded: q.excluded, quantity: 1, zone: q.zone,
-        maxMinutes: q.maxMinutes, expiresAt: q.expiresAt });
+        deliveryPointId: q.deliveryPointId ?? null, distanceMeters: q.deliveryPointId ? distanceMeters(restaurantId, q.deliveryPointId) : null,
+        locationIsDemo: true, maxMinutes: q.maxMinutes, expiresAt: q.expiresAt });
 }
 export function toRestaurantOffer(o: Offer): RestaurantOffer {
     return restaurantOfferSchema.parse({ protocol: 'ibyara.exchange.v1', offerId: o.id,
@@ -41,5 +48,6 @@ export function toRestaurantOffer(o: Offer): RestaurantOffer {
         recipeVersion: o.recipeVersion, dish: o.dish, composition: o.composition,
         quantity: 1, price: { subtotalCents: o.subtotalCents, deliveryCents: o.deliveryCents,
             buyerFeeCents: o.buyerFeeCents, totalCents: o.totalCents },
-        etaMinutes: o.eta, ...publicRating(o.merchantId, o), expiresAt: o.expiresAt, executionMode: 'SANDBOX' });
+        etaMinutes: o.eta, distanceMeters: o.distanceMeters ?? null, locationIsDemo: o.locationIsDemo ?? true,
+        ...publicRating(o.merchantId, o), expiresAt: o.expiresAt, executionMode: 'SANDBOX' });
 }

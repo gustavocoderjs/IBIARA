@@ -26,6 +26,11 @@ export function publicRating(id: string, stored: Partial<PublicRating> = {}): Pu
 }
 
 export function compareOffers(a: Offer, b: Offer, preference: SelectionPreference = 'LOWEST_PRICE'): number {
+    if (preference === 'NEAREST') {
+        const distanceA = a.distanceMeters ?? Infinity, distanceB = b.distanceMeters ?? Infinity;
+        if (distanceA !== distanceB) return distanceA < distanceB ? -1 : 1;
+    }
+    if (preference === 'FASTEST' && a.eta !== b.eta) return a.eta - b.eta;
     if (preference === 'BEST_RATED') {
         const scoreA = publicRating(a.merchantId, a).ratingTenths ?? -1;
         const scoreB = publicRating(b.merchantId, b).ratingTenths ?? -1;

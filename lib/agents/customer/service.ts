@@ -9,6 +9,7 @@ import { recordUsage } from '../shared/telemetry.ts';
 import { ensureDemoMarket } from '../../domain/demo-market.ts';
 import { publicMenu } from './menu.ts';
 import { customerDecision } from './decision.ts';
+import { deliveryPoints } from '../../domain/delivery.ts';
 
 export async function customerTurn(store: AggregateStore, owner: string, input: CustomerTurn,
     key: string, digest: string, provider: ChatProvider, maxCalls = 24) {
@@ -50,7 +51,9 @@ export async function customerTurn(store: AggregateStore, owner: string, input: 
         { role: 'user', content: JSON.stringify({
             lastQuestion: lastAssistantText ?? null,
             pendingQuestion: session.pendingQuestion ?? null,
+            question: session.question ?? null,
             currentDraft: session.draft, discovery: session.discovery ?? null,
+            deliveryPoints: deliveryPoints.map(({ id, label }) => ({ id, label, zone: 'demo_butanta', simulated: true })),
             hasActiveSearch: !!activeRfq, publicMenu: publicMenu(state, at),
             currentMessage: input.message,
         }) },
@@ -60,9 +63,12 @@ export async function customerTurn(store: AggregateStore, owner: string, input: 
     const tool = runCustomerTool(decision, session.draft, state, at, input.message, lastAssistantText, session);
     const reply = completion.usage.mode === 'LOCAL_MOCK' ?
         'Modo de teste local: a IA não está conectada. Use o formulário abaixo para definir e autorizar seu pedido.' : tool.reply;
+    const fieldSources = { ...session.fieldSources };
+    for (const field of Object.keys(tool.draft) as (keyof typeof tool.draft)[])
+        if (JSON.stringify(tool.draft[field]) !== JSON.stringify(session.draft[field])) fieldSources[field] = { turn: session.version + 1, text: input.message };
     state.customerAgent = {
         version: session.version + 1, draft: tool.draft,
-        discovery: tool.discovery, pendingQuestion: tool.pendingQuestion,
+        discovery: tool.discovery, pendingQuestion: tool.pendingQuestion, question: tool.question, fieldSources,
         turns: [...session.turns, { role: 'user' as const, text: input.message, at },
             { role: 'assistant' as const, text: reply, at }].slice(-12),
         calls: session.calls + completions.filter(c => c.usage.mode === 'NEURALAKE').length, lastUsage: completion.usage,

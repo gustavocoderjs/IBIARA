@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { getState, type AggregateStore } from '../../domain/transaction.ts';
 import { DomainError, demand, event, nowIso } from '../../domain/types.ts';
-import { negotiate, validMandate } from '../../domain/commerce.ts';
+import { negotiate, validMandate, validateRfqSelection } from '../../domain/commerce.ts';
+import { servesDeliveryPoint } from '../../domain/delivery.ts';
 import { toRestaurantRequest, toRestaurantOffer } from '../shared/contracts.ts';
 import { restaurantIds, type RestaurantId } from '../shared/router.ts';
 import { consultRestaurant } from '../restaurants/service.ts';
@@ -25,9 +26,13 @@ export async function negotiateWithAgents(store: AggregateStore, owner: string, 
     assertCustomerPurchaseSupported(row.state);
     demand(q, 'RFQ_NOT_FOUND', 'Busca não encontrada.');
     demand(q.status === 'QUOTED' && q.expiresAt > at, 'RFQ_CLOSED', 'Esta busca não está aberta para negociação.');
-    validMandate(row.state.mandates.find(m => m.id === q.mandateId), at);
+    const mandate = row.state.mandates.find(m => m.id === q.mandateId);
+    validMandate(mandate, at);
+    validateRfqSelection(q, mandate);
     // Only the buyer coordinator can fan out. No arbitrary recipient/body from HTTP or LLM.
-    const decisions = await Promise.all(restaurantIds.map(id => {
+    const recipients = restaurantIds.filter(id => (!q.restaurantId || id === q.restaurantId) &&
+        (!q.deliveryPointId || servesDeliveryPoint(id, q.deliveryPointId)));
+    const decisions = await Promise.all(recipients.map(id => {
         const offers = row.state.offers.filter(o => o.rfqId === rfqId && o.merchantId === id &&
             o.status === 'ISSUED' && o.expiresAt > at).map(toRestaurantOffer);
         return consultRestaurant(id, toRestaurantRequest(q, id), offers, connections[id].provider, connections[id].mode);

@@ -7,7 +7,7 @@ import { type State, DomainError } from '../lib/domain/types.ts';
 import type { AggregateStore } from '../lib/domain/transaction.ts';
 import { customerTurn } from '../lib/agents/customer/service.ts';
 import { emptyCustomerSession } from '../lib/agents/customer/state.ts';
-import { agentDecisionSchema, customerTurnSchema } from '../lib/agents/customer/schemas.ts';
+import { agentDecisionSchema, customerTurnSchema, type CustomerSession } from '../lib/agents/customer/schemas.ts';
 import { configForAgent } from '../lib/agents/shared/config.ts';
 import { NeuraLakeChat, type ChatProvider, type ChatMessage } from '../lib/agents/shared/neuralake.ts';
 import { toRestaurantRequest, toRestaurantOffer, priceQuoteSchema } from '../lib/agents/shared/contracts.ts';
@@ -34,6 +34,22 @@ function fake(content: unknown, inspect?: (messages: ChatMessage[]) => void): Ch
 const patch = { description: 'Bife a cavalo', budget: '35.00', portions: 1, maxMinutes: 40,
     zone: 'demo_butanta', excluded: [], foodSafetyConcern: false };
 const completeCustomerRequest = 'Quero uma porção de Bife a cavalo, até 35 reais no total com entrega no Butantã, em até 40 minutos. Não tenho alergias e nenhum ingrediente para excluir.';
+
+test('explanation accepts an empty provider envelope but cannot carry draft changes', async () => {
+    const store = new Store();
+    await customerTurn(store, 'explanation', { message: 'Quero uma porção de Bife a cavalo.', expectedVersion: 0 },
+        'first', 'first', fake({ tool: 'propose_request', patch: { description: 'Bife a cavalo', portions: 1 } }));
+    const before = (await store.read('explanation'))!.state;
+    await customerTurn(store, 'explanation', { message: 'Como assim?', expectedVersion: 1 },
+        'explain', 'explain', fake({ tool: 'explain_question', patch: {} }));
+    const after = (await store.read('explanation'))!.state;
+    assert.deepEqual(after.customerAgent!.draft, before.customerAgent!.draft);
+    assert.deepEqual(after.customerAgent!.question, before.customerAgent!.question);
+    assert.notEqual(after.customerAgent!.turns.at(-1)!.text, before.customerAgent!.turns.at(-1)!.text);
+    assert.deepEqual(after.mandates, []); assert.deepEqual(after.orders, []);
+    assert.equal(agentDecisionSchema.safeParse({ tool: 'explain_question', patch: { budget: '50.00' } }).success, false);
+    assert.equal(agentDecisionSchema.safeParse({ tool: 'explain_question', question: 'outra pergunta' }).success, false);
+});
 function commercialState(owner = 'one') {
     const at = new Date().toISOString(), state = initialState(owner, at);
     execute(state, { type: 'seed_demo', scope: 'merchant' }, at);
@@ -52,6 +68,32 @@ test('customer extraction persists an unconfirmed draft; never creates mandate o
     assert.equal(state.customerAgent!.turns.length, 2);
     assert.equal(draftReadiness(state.customerAgent!.draft).ready, true);
     assert.equal(state.mandates.length, 0); assert.equal(state.orders.length, 0);
+});
+
+test('unsupported extracted quantities reach validation instead of retaining a previous ready order', async () => {
+    for (const value of [0, '0', 21, -1, 1.5]) {
+        const store = new Store();
+        await customerTurn(store, 'quantity', { message: completeCustomerRequest, expectedVersion: 0 },
+            'initial', 'initial', fake({ tool: 'propose_request', patch }));
+        const response = await customerTurn(store, 'quantity', { message: `Agora são ${value} porções.`, expectedVersion: 1 },
+            'invalid-quantity', 'invalid-quantity', fake({ tool: 'propose_request', patch: { portions: value } }));
+        const result = response.result as { session: CustomerSession; readiness: { ready: boolean } };
+        assert.equal(result.session.draft.portions, null);
+        assert.equal(result.readiness.ready, false);
+        assert.equal(result.session.calls, 2, 'No format repair for a recognized unsupported quantity.');
+        assert.equal((await store.read('quantity'))!.state.orders.length, 0);
+    }
+});
+
+test('numeric minutes returned as a JSON string are normalized but still require source evidence', async () => {
+    for (const [message, expected] of [['Preciso receber em 60 minutos.', 60], ['Preciso receber rápido.', null]] as const) {
+        const store = new Store();
+        await customerTurn(store, 'minutes', { message, expectedVersion: 0 }, 'minutes', 'minutes',
+            fake({ tool: 'propose_request', patch: { maxMinutes: '60' } }));
+        assert.equal((await store.read('minutes'))!.state.customerAgent!.draft.maxMinutes, expected);
+    }
+    assert.equal(agentDecisionSchema.safeParse({ tool: 'propose_request', patch: { maxMinutes: '180; accept_order' } }).success, false);
+    assert.equal(agentDecisionSchema.safeParse({ tool: 'propose_request', patch: { maxMinutes: '181' } }).success, false);
 });
 
 test('a complete model patch cannot invent the fields missing from the actual customer input', async () => {
@@ -210,7 +252,12 @@ test('one format repair validates the same contract, counts both calls and canno
     const store = new Store(); let calls = 0;
     const provider: ChatProvider = { async complete(messages) {
         calls++;
-        if (calls === 2) assert.equal(messages.at(-1)!.role, 'system');
+        if (calls === 2) {
+            assert.equal(messages.at(-1)!.role, 'system');
+            assert.equal(messages.at(-2)!.role, 'assistant');
+            assert.equal(messages.at(-2)!.content, 'Resposta fora do JSON');
+            assert.match(messages.at(-1)!.content, /JSON inválido/);
+        }
         return { content: calls === 1 ? 'Resposta fora do JSON' : JSON.stringify({ tool: 'propose_request', patch }),
             usage: { mode: 'NEURALAKE', model: 'test', tokens: 7, cost: null } };
     } };
@@ -222,6 +269,26 @@ test('one format repair validates the same contract, counts both calls and canno
     assert.equal(state.mandates.length, 0); assert.equal(state.orders.length, 0);
     assert.equal((await customerTurn(store, 'repair', input, 'repair-key', 'repair-digest', provider)).replayed, true);
     assert.equal(calls, 2);
+});
+
+test('schema repair identifies the invalid field and keeps strict validation', async () => {
+    const store = new Store(); let calls = 0;
+    const invalid = JSON.stringify({ tool: 'propose_request', patch: { budget: 35 } });
+    const provider: ChatProvider = { async complete(messages) {
+        calls++;
+        if (calls === 2) {
+            assert.equal(messages.at(-2)!.content, invalid);
+            assert.match(messages.at(-1)!.content, /invalid_type/);
+            assert.match(messages.at(-1)!.content, /"path":\["patch","budget"\]/);
+        }
+        return { content: calls === 1 ? invalid : JSON.stringify({ tool: 'propose_request', patch: { budget: '35.00' } }),
+            usage: { mode: 'NEURALAKE', model: 'test', tokens: 7, cost: null } };
+    } };
+    await customerTurn(store, 'schema-repair', { message: 'Meu limite total é 35 reais.', expectedVersion: 0 },
+        'schema-repair', 'schema-repair', provider);
+    const state = (await store.read('schema-repair'))!.state;
+    assert.equal(calls, 2); assert.equal(state.customerAgent!.draft.budget, '35.00');
+    assert.deepEqual(state.mandates, []); assert.deepEqual(state.orders, []);
 });
 
 test('failed format repair is bounded, preserves the draft and never admits financial fields', async () => {

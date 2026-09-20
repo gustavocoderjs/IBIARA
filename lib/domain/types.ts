@@ -1,6 +1,7 @@
 import type { CustomerSession } from '../agents/customer/schemas.ts';
+import type { DemoRestaurantId, DeliveryPointId } from './delivery.ts';
 export type Role = 'merchant' | 'buyer';
-export type SelectionPreference = 'LOWEST_PRICE' | 'BEST_RATED';
+export type SelectionPreference = 'LOWEST_PRICE' | 'BEST_RATED' | 'NEAREST' | 'FASTEST';
 export type Basis = 'AS_PURCHASED' | 'RAW_EDIBLE' | 'COOKED_EDIBLE';
 export type Component = {
     item: string;
@@ -120,6 +121,8 @@ export type Offer = {
     rfqId: string;
     merchantId: string;
     merchantName: string;
+    distanceMeters?: number | null;
+    locationIsDemo?: boolean;
     ratingTenths?: number | null;
     ratingCount?: number;
     ratingIsDemo?: boolean;
@@ -154,6 +157,8 @@ export type Mandate = {
     description: string;
     maxMinutes: number;
     selectionPreference?: SelectionPreference;
+    restaurantId?: DemoRestaurantId | null;
+    deliveryPointId?: DeliveryPointId | null;
     zone: string;
     excluded: string[];
     confirmedAt: string;
@@ -161,6 +166,8 @@ export type Mandate = {
 export type RFQ = {
     id: string;
     mandateId: string;
+    restaurantId?: DemoRestaurantId | null;
+    deliveryPointId?: DeliveryPointId | null;
     description: string;
     dishName?: string;
     required: string[];

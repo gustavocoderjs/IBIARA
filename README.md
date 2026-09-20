@@ -30,8 +30,20 @@ Use a conversa do cliente → enviar intenção → revisar no formulário → a
 Perguntar pelo cardápio mostra até três opções filtradas, com ingredientes, disponibilidade,
 preços calculados e notas simuladas. “Mais opções” continua a lista; “a segunda” escolhe
 somente entre as últimas opções exibidas. Explorar um ingrediente não confirma um prato.
-A escolha é do prato; o restaurante é definido na busca autorizada, pelo critério escolhido.
+A lista de pratos escolhe a refeição. A pessoa também pode pedir uma lista de restaurantes,
+escolher um pelo nome ou pela posição apresentada e então consultar seus pratos.
+O restaurante explicitamente escolhido acompanha revisão, mandato, busca e aceite;
+se ele não puder atender, a compra não muda silenciosamente de cozinha. Sem escolha
+fixa, o domínio compara restaurantes elegíveis pelo critério autorizado.
 Nenhuma dessas consultas cria pedido.
+
+A aplicação abre na visão do consumidor. Pedidos de comida reconhecidos na gestão
+do restaurante são bloqueados antes de alterar fichas ou histórico. A interface
+oferece continuar como consumidor com a mensagem recuperada, sem enviá-la automaticamente
+nem transferir dados privados da cozinha. Se já existir uma conversa de compra, o usuário
+precisa iniciar explicitamente um novo pedido antes de enviar a mensagem recuperada.
+“Como assim?” explica a pergunta pendente; a sessão guarda o assunto e a origem textual
+dos campos alterados, sem depender de reconstruir esse contexto pela frase exibida.
 
 Os campos do pedido exigem evidência na mensagem ou resposta à pergunta pendente;
 a saída da IA não pode fornecer números ausentes como orçamento, quantidade ou prazo.
@@ -166,6 +178,7 @@ identifica a contingência local e orienta o preenchimento manual; ela não fing
 | Cross Memory | Desativada e não validada |
 | QR fiscal | Não conectado; links são rejeitados, nunca buscados automaticamente |
 | Restaurantes, preços de insumos, taxas, elegibilidade e validades iniciais | Fixtures fictícias |
+| Proximidade e cobertura | Três pontos e posições/raios de restaurantes fictícios; distância aproximada em linha reta, sem GPS, rota ou cálculo de ETA |
 | Pagamento/entrega | Nenhuma movimentação financeira ou entrega real |
 | Autenticação | Private Sites + identidade encaminhada; operador pode alternar os dois personagens da própria demo |
 | Multi-tenant comercial | Não homologado: cada operador possui um cenário completo privado |
@@ -174,18 +187,27 @@ identifica a contingência local e orienta o preenchimento manual; ela não fing
 
 ## Arquitetura e revisão
 
-O comprador pode priorizar **menor preço** ou **melhor avaliação**, pela conversa ou
-na revisão. Notas e contagens são simuladas e identificadas na interface. Maior nota
-pode vencer com maior espera/preço, sempre dentro dos limites autorizados. Evidências
+O comprador pode priorizar **menor preço**, **melhor avaliação**, **mais próximo** ou
+**menor prazo**, pela conversa ou na revisão. Proximidade exige um ponto de entrega
+simulado: Butantã Centro, USP ou Vila Indiana. O sistema filtra cobertura e limites antes
+de ordenar; distância não significa tempo de entrega. Notas, contagens e localizações
+são simuladas e identificadas na interface. Maior nota pode vencer com maior espera/preço,
+sempre dentro dos limites autorizados. Evidências
 da rodada anterior, com 69 testes, conversa real e compra por avaliação: [validação](docs/evidence/VALIDATION-CONVERSATION.md).
-O atendimento guiado e as proteções atuais estão registrados na
-[validação desta rodada](docs/evidence/VALIDATION-GUIDED-CUSTOMER.md).
+O atendimento guiado anterior está registrado na
+[validação da conversa guiada](docs/evidence/VALIDATION-GUIDED-CUSTOMER.md).
+A revisão de entrada, descoberta de restaurantes e preservação da escolha tem resultados
+e limites em [validação da jornada](docs/evidence/VALIDATION-RESTAURANT-JOURNEY.md).
+Continuamos com quatro agentes: o comprador coordena as consultas no backend; não há
+uma quinta IA intermediária. Restaurante escolhido recebe a consulta sozinho; na
+comparação, cada restaurante elegível recebe apenas seu próprio contexto.
 Para verificar a interface sem mexer na conversa local habitual, use
 `node scripts/preview-demo.mjs --isolated` (porta 5174, Worker na 4173).
 
 - `lib/domain`: modelos, aritmética, preço, orquestração comercial, comandos e transações.
 - `lib/domain/demo-market.ts`: preparação idempotente dos cardápios/estoques; `meal-intent.ts`: vocabulário conservador que rejeita termos fora do catálogo.
-- `lib/agents`: conversa, descoberta de pratos e validação da origem dos campos do cliente; três contextos de restaurante, schemas, roteador e transporte NeuraLake. `currentDraft`, `discovery` e `pendingQuestion` são contexto privado do comprador e não entram na RFQ dos restaurantes.
+- `lib/domain/delivery.ts`: pontos, posições e raios fictícios, distância em linha reta e validação da cobertura; `conversation-entry.ts`: proteção da entrada de conversa na gestão do restaurante.
+- `lib/agents`: conversa, descoberta de pratos/restaurantes e validação da origem dos campos do cliente; três contextos de restaurante, schemas, roteador e transporte NeuraLake. `currentDraft`, `discovery`, `question`, `pendingQuestion` e `fieldSources` são dados privados do comprador e não entram na RFQ dos restaurantes.
 - `lib/adapters`: fronteiras NeuraLake, Agora e fiscal.
 - `lib/server/repository.ts`: implementação D1; uma linha por operador com revisão otimista.
 - `app/api/v1/[...path]/route.ts`: autenticação, limites, schemas, comandos e eventos.

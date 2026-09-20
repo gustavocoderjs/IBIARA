@@ -6,17 +6,32 @@ import { catalog } from './fixtures.ts';
 import { mealIntentIssue } from './meal-intent.ts';
 import { compareOffers, publicRating } from './ratings.ts';
 import { assertCustomerPurchaseSupported } from './customer-purchase.ts';
+import { assertDeliverySelection, distanceMeters, servesDeliveryPoint } from './delivery.ts';
 const dishIdentity = (recipe: Recipe) => normalize(recipe.mode === 'PREPRODUCED' ?
     recipe.name.replace(/ \(pré-produzido\)$/, '') : recipe.name);
 const currentRecipes = (restaurant: Restaurant) => restaurant.recipes.filter(recipe =>
     recipe.status === 'CONFIRMED' && !restaurant.recipes.some(newer =>
         newer.status === 'CONFIRMED' && newer.id === recipe.id && newer.version > recipe.version));
-export function validMandate(m: Mandate | undefined, at: string): asserts m is Mandate { demand(m, 'MANDATE_REQUIRED', 'Autorize um limite antes de negociar.'); demand(!m.revoked, 'MANDATE_REVOKED', 'A autorização foi revogada.'); demand(m.expiresAt > at, 'MANDATE_EXPIRED', 'A autorização expirou.'); demand(m.used < m.maxUses, 'MANDATE_EXHAUSTED', 'Esta autorização já foi utilizada.'); }
+export function validMandate(m: Mandate | undefined, at: string): asserts m is Mandate { demand(m, 'MANDATE_REQUIRED', 'Autorize um limite antes de negociar.'); demand(!m.revoked, 'MANDATE_REVOKED', 'A autorização foi revogada.'); demand(m.expiresAt > at, 'MANDATE_EXPIRED', 'A autorização expirou.'); demand(m.used < m.maxUses, 'MANDATE_EXHAUSTED', 'Esta autorização já foi utilizada.'); assertDeliverySelection(m); }
+export function validateRfqSelection(rfq: RFQ, mandate: Mandate, merchantId?: string) {
+    demand((rfq.restaurantId ?? null) === (mandate.restaurantId ?? null) &&
+        (rfq.deliveryPointId ?? null) === (mandate.deliveryPointId ?? null),
+        'AUTHORIZATION_MISMATCH', 'A busca não corresponde ao restaurante ou ponto autorizado.');
+    if (merchantId) {
+        demand(!mandate.restaurantId || merchantId === mandate.restaurantId,
+            'RESTAURANT_MISMATCH', 'A proposta não pertence ao restaurante escolhido.');
+        demand(!mandate.deliveryPointId || servesDeliveryPoint(merchantId, mandate.deliveryPointId),
+            'DELIVERY_UNAVAILABLE', 'O restaurante não atende o ponto autorizado na simulação.');
+    }
+}
 // Only the public RFQ enters the merchant service. No buyer mandate/budget.
 export function merchantOffer(r: Restaurant, recipe: Recipe, rfq: RFQ, at: string, requested?: number, previous?: Offer): Offer {
+    assertDeliverySelection(rfq);
+    demand(!rfq.restaurantId || r.id === rfq.restaurantId, 'RESTAURANT_MISMATCH', 'A busca é exclusiva do restaurante escolhido.');
+    demand(!rfq.deliveryPointId || servesDeliveryPoint(r.id, rfq.deliveryPointId), 'DELIVERY_UNAVAILABLE', 'O restaurante não atende esse ponto na simulação.');
     const receipt = quote(r, recipe, at, requested);
     const subtotalCents = receipt.subtotalCents;
-    return { id: uid('offer'), rfqId: rfq.id, merchantId: r.id, merchantName: r.name, ...publicRating(r.id, r), recipeId: recipe.id, recipeVersion: recipe.version, dish: recipe.name, composition: recipe.components.map(c => catalog.find(i => i.id === c.item)?.name ?? c.item), subtotalCents, deliveryCents: r.deliveryCents, buyerFeeCents: 0, totalCents: subtotalCents + r.deliveryCents, eta: r.eta, expiresAt: new Date(Math.min(Date.parse(at) + r.policy!.offerTtlSeconds * 1000, Date.parse(rfq.expiresAt))).toISOString(), status: 'ISSUED', round: previous ? previous.round + 1 : 0, previousOfferId: previous?.id ?? null, quoteToken: uid('quote'), receipt, requirements: requirements(recipe) };
+    return { id: uid('offer'), rfqId: rfq.id, merchantId: r.id, merchantName: r.name, ...publicRating(r.id, r), distanceMeters: rfq.deliveryPointId ? distanceMeters(r.id, rfq.deliveryPointId) : null, locationIsDemo: true, recipeId: recipe.id, recipeVersion: recipe.version, dish: recipe.name, composition: recipe.components.map(c => catalog.find(i => i.id === c.item)?.name ?? c.item), subtotalCents, deliveryCents: r.deliveryCents, buyerFeeCents: 0, totalCents: subtotalCents + r.deliveryCents, eta: r.eta, expiresAt: new Date(Math.min(Date.parse(at) + r.policy!.offerTtlSeconds * 1000, Date.parse(rfq.expiresAt))).toISOString(), status: 'ISSUED', round: previous ? previous.round + 1 : 0, previousOfferId: previous?.id ?? null, quoteToken: uid('quote'), receipt, requirements: requirements(recipe) };
 }
 export function createRfq(s: State, mandateId: string, at: string) {
     assertCustomerPurchaseSupported(s);
@@ -38,11 +53,13 @@ export function createRfq(s: State, mandateId: string, at: string) {
             if (!required.includes(id as never))
                 required.push(id as never);
     demand(required.length > 0, 'INTENT_UNSUPPORTED', 'Descreva os ingredientes desejados; o interpretador local não entendeu esta intenção.');
-    const rfq: RFQ = { id: uid('rfq'), mandateId: m.id, description: required.map(id => catalog.find(i => i.id === id)?.name ?? id).join(', '), required, excluded: m.excluded, zone: m.zone, maxMinutes: m.maxMinutes, createdAt: at, expiresAt: new Date(Date.parse(at) + 120000).toISOString(), status: 'OPEN', winnerId: null, reasons: [] };
+    const rfq: RFQ = { id: uid('rfq'), mandateId: m.id, restaurantId: m.restaurantId ?? null, deliveryPointId: m.deliveryPointId ?? null, description: required.map(id => catalog.find(i => i.id === id)?.name ?? id).join(', '), required, excluded: m.excluded, zone: m.zone, maxMinutes: m.maxMinutes, createdAt: at, expiresAt: new Date(Date.parse(at) + 120000).toISOString(), status: 'OPEN', winnerId: null, reasons: [] };
     if (namedRecipe) rfq.dishName = namedRecipe.name.replace(/ \(pré-produzido\)$/, '');
     s.rfqs.push(rfq);
     event(s, 'RFQ_CREATED', 'buyer', 'Busca aberta', 'Seu agente enviou composição, região e prazo. O limite autorizado continua privado.', rfq.id, at, undefined, { required, zone: rfq.zone, maxMinutes: rfq.maxMinutes });
     for (const r of s.restaurants) {
+        if (rfq.restaurantId && r.id !== rfq.restaurantId || rfq.deliveryPointId && !servesDeliveryPoint(r.id, rfq.deliveryPointId))
+            continue;
         if (r.zone !== rfq.zone || r.eta > rfq.maxMinutes || !r.policy || freeCapacity(s, r) <= 0)
             continue;
         const recipes = currentRecipes(r).filter(x =>
@@ -83,6 +100,7 @@ export function counter(s: State, offerId: string, requested: number, at: string
     const rfq = s.rfqs.find(q => q.id === old.rfqId)!;
     const m = s.mandates.find(m => m.id === rfq.mandateId);
     validMandate(m, at);
+    validateRfqSelection(rfq, m, old.merchantId);
     demand(requested + old.deliveryCents <= m.maxCents - m.committedCents, 'BUDGET_EXCEEDED', 'A contraproposta excede o limite total autorizado.');
     const r = s.restaurants.find(r => r.id === old.merchantId)!;
     demand(old.round < r.policy!.maxRounds, 'MAX_ROUNDS', 'Limite de rodadas atingido.');
@@ -103,6 +121,7 @@ export function accept(s: State, offerId: string, quoteToken: string, at: string
     demand(!['CLOSED', 'NO_MATCH'].includes(rfq.status), 'RFQ_CLOSED', 'Esta busca já foi encerrada.');
     const m = s.mandates.find(m => m.id === rfq.mandateId);
     validMandate(m, at);
+    validateRfqSelection(rfq, m, o.merchantId);
     demand(o.totalCents <= m.maxCents - m.committedCents, 'BUDGET_EXCEEDED', 'O total com entrega excede o limite.');
     demand(o.eta <= m.maxMinutes, 'DELIVERY_WINDOW_UNAVAILABLE', 'Prazo indisponível.');
     const r = s.restaurants.find(r => r.id === o.merchantId)!;
@@ -137,8 +156,11 @@ export function negotiate(s: State, rfqId: string, at: string) {
     demand(rfq.expiresAt > at, 'OFFER_EXPIRED', 'A busca expirou. Autorize uma nova busca.');
     const m = s.mandates.find(m => m.id === rfq.mandateId);
     validMandate(m, at);
+    validateRfqSelection(rfq, m);
     // Buyer sees public prices, terms and its own mandate, never merchant receipts.
-    const publicCandidates = s.offers.filter(o => o.rfqId === rfq.id && o.status === 'ISSUED' && o.expiresAt > at).map(o => ({ id: o.id, subtotal: o.subtotalCents, delivery: o.deliveryCents, total: o.totalCents, eta: o.eta, merchant: o.merchantId, round: o.round }));
+    const matchesSelection = (o: Offer) => (!m.restaurantId || o.merchantId === m.restaurantId) &&
+        (!m.deliveryPointId || servesDeliveryPoint(o.merchantId, m.deliveryPointId));
+    const publicCandidates = s.offers.filter(o => o.rfqId === rfq.id && o.status === 'ISSUED' && o.expiresAt > at && matchesSelection(o)).map(o => ({ id: o.id, subtotal: o.subtotalCents, delivery: o.deliveryCents, total: o.totalCents, eta: o.eta, merchant: o.merchantId, round: o.round }));
     for (const o of publicCandidates) {
         const requested = Math.floor((o.subtotal - 1) / 100) * 100;
         if (requested > 0 && requested + o.delivery <= m.maxCents - m.committedCents) {
@@ -152,7 +174,7 @@ export function negotiate(s: State, rfqId: string, at: string) {
             }
         }
     }
-    const eligible = s.offers.filter(o => o.rfqId === rfq.id && o.status === 'ISSUED' && o.expiresAt > at && o.totalCents <= m.maxCents - m.committedCents && o.eta <= m.maxMinutes).sort((a, b) => compareOffers(a, b, m.selectionPreference));
+    const eligible = s.offers.filter(o => o.rfqId === rfq.id && o.status === 'ISSUED' && o.expiresAt > at && matchesSelection(o) && o.totalCents <= m.maxCents - m.committedCents && o.eta <= m.maxMinutes).sort((a, b) => compareOffers(a, b, m.selectionPreference));
     for (const o of eligible) {
         try {
             return accept(s, o.id, o.quoteToken, at);

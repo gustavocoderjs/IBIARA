@@ -1,5 +1,6 @@
 import type { CustomerDraft } from './schemas.ts';
 import { catalog } from '../../domain/fixtures.ts';
+import { customerLocation } from './location.ts';
 
 const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 const units: Record<string, number> = { zero: 0, um: 1, uma: 1, dois: 2, duas: 2, tres: 3, quatro: 4,
@@ -11,8 +12,12 @@ const one = '(?:um|uma|dois|duas|tres|quatro|cinco|seis|sete|oito|nove)';
 const tens = '(?:vinte|trinta|quarenta|cinquenta|sessenta|setenta|oitenta|noventa)';
 const wordNumber = `(?:cento e (?:${tens}(?: e ${one})?|${one}|dez|onze|doze|treze|quinze)|cem|${tens}(?: e ${one})?|dezesseis|dezessete|dezoito|dezenove|catorze|quatorze|quinze|treze|doze|onze|dez|zero|${one})`;
 const number = `(?:\\d+(?:[.,]\\d{1,2})?|${wordNumber})`;
+const quantityNumber = `(?:-?\\d+(?:[.,]\\d+)?|(?:menos\\s+)?${wordNumber})`;
+const quantityUnit = '(?:porcoes|porcao|marmitas?|pratos?|refeicoes|refeicao|pessoas?)';
 const numeric = (value: string) => /^\d/.test(value) ? Number(value.replace(',', '.')) :
     value.split(/\s+e\s+/).reduce((sum, part) => sum + (units[part] ?? NaN), 0);
+const quantityNumeric = (value: string) => /^-?\d/.test(value) ? Number(value.replace(',', '.')) :
+    value.startsWith('menos ') ? -numeric(value.slice(6)) : numeric(value);
 const monetary = (value: number) => value > 0 && value < 10000 ? value.toFixed(2) : undefined;
 const escape = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const mentions = (text: string, value: string) => new RegExp(`\\b${escape(normalize(value))}\\b`).test(text);
@@ -25,11 +30,6 @@ const shortNumber = (text: string) => text.match(new RegExp(`^(?:(?:so|apenas|at
 const upperBound = (text: string) => text
     .replace(/\bnao (?:quero|posso|vou|pretendo|consigo|devo) (?:gastar|pagar|esperar|aguardar) (?:mais|acima) (?:do que|de)\s+/g, 'ate ')
     .replace(/\bnao (?:quero|posso|vou|consigo|devo) (?:passar de|ultrapassar(?: o limite de)?)\s+/g, 'ate ');
-function explicitOtherRegion(text: string) {
-    const place = text.match(/\b(?:(?:(?:a )?entrega(?: (?:sera|vai ser))?|sera|vai ser|moro) (?:em|no|na)|(?:meu )?(?:bairro|regiao|endereco) (?:e|sera|de))\s+([a-z][a-z -]*)/)?.[1].trim();
-    return !!place && !/^(?:mesm[oa]|outr[oa]|algum|qualquer|local|lugar|endereco|bairro|regiao|restaurante|prato|pedido|cardapio|horario|dia|momento|inicio|fim|comeco|total|maximo|minimo|que|meu|minha|seu|sua|casa|trabalho|escritorio|empresa|hotel|faculdade|escola|hospital)\b/.test(place) &&
-        !catalog.some(item => item.aliases.some(alias => place === alias || place.startsWith(`${alias} `)));
-}
 type NumericField = 'budget' | 'portions' | 'maxMinutes';
 
 /** A schema-valid model value is still only a proposal. This accepts textual evidence,
@@ -47,9 +47,16 @@ export function groundCustomerPatch(proposed: Partial<CustomerDraft>, draft: Cus
     const values: Record<NumericField, number[]> = { budget: [], portions: [], maxMinutes: [] };
     const currency = /r\$|\breais?\b|\borcamento\b/.test(text);
     const duration = /\b(?:minutos?|min|horas?|prazo)\b/.test(text);
+    const negatedQuantityPattern = `\\bnao\\s+(?:e|sao|sera|serao|quero|preciso|vou querer)\\s+(?:apenas\\s+|so\\s+)?(${quantityNumber})\\s*(?:unic[oa]\\s+)?${quantityUnit}\\b`;
+    const quantityCorrection = new RegExp(negatedQuantityPattern).test(text);
     for (const source of parts) {
         if (commercialInstruction) break;
         const part = upperBound(source);
+        const negatedQuantity = part.match(new RegExp(negatedQuantityPattern));
+        if (negatedQuantity) {
+            if (!uncertain(part) && quantityNumeric(negatedQuantity[1]) === draft.portions) result.portions = null;
+            continue;
+        }
         if (uncertain(part) || denied(part) || question(part) || /\bsem (?:alterar|mudar)\b/.test(part)) continue;
         const foreignMoney = /\b(?:dolares?|euros?|usd|eur|libras?|pesos?)\b/.test(part);
         for (const match of numberMatches(`(?<![\\w.,-])(${number})\\s*(?:reais?|brl)\\b|r\\$\\s*(${number})(?![\\d.,])`, part))
@@ -61,9 +68,14 @@ export function groundCustomerPatch(proposed: Partial<CustomerDraft>, draft: Cus
             values.maxMinutes.push(numeric(match[1]) * (/^(?:hora|h)/.test(match[2]) ? 60 : 1));
         }
         if (/\bmeia hora\b/.test(part)) values.maxMinutes.push(30);
-        for (const match of numberMatches(`(?<![\\w.,-])(${number})\\s*(?:porcoes|porcao|marmitas?|pratos?|refeicoes|refeicao|pessoas?)\\b`, part))
-            values.portions.push(numeric(match[1]));
+        for (const match of numberMatches(`(?<![\\w.,-])(${quantityNumber})\\s*(?:unic[oa]\\s+)?${quantityUnit}\\b`, part))
+            values.portions.push(quantityNumeric(match[1]));
+        for (const match of numberMatches(`(?<![\\w.,-])(${quantityNumber})\\s+(?:ou|a|ate)\\s+(${quantityNumber})\\s*${quantityUnit}\\b`, part))
+            values.portions.push(quantityNumeric(match[1]), quantityNumeric(match[2]));
         if (/\b(?:quero|pedir|comer|gostaria de)\b/.test(part) && /\b(?:um|uma) bife\b/.test(part)) values.portions.push(1);
+        const shortQuantity = (pendingQuestion === 'portions' || quantityCorrection) &&
+            part.match(new RegExp(`^(?:(?:so|apenas|ate|no maximo|pode ser|na verdade|corrigindo|sao|somos|para)\\s+)?(${quantityNumber})(?:\\s+por favor)?[.!]?$`));
+        if (shortQuantity) { values.portions.push(quantityNumeric(shortQuantity[1])); continue; }
         const short = shortNumber(part);
         if (short && !/\b(?:dolares?|euros?|kg|gramas?|nota|estrelas?)\b/.test(text)) {
             const field = pendingQuestion === 'budget' || pendingQuestion === 'portions' || pendingQuestion === 'maxMinutes' ? pendingQuestion :
@@ -80,6 +92,7 @@ export function groundCustomerPatch(proposed: Partial<CustomerDraft>, draft: Cus
         const value = distinct[0];
         if (field === 'budget') { const amount = monetary(value); if (amount) result.budget = amount; }
         else if (Number.isInteger(value) && value >= 1 && value <= (field === 'portions' ? 20 : 180)) result[field] = value;
+        else if (field === 'portions') result.portions = null;
     }
     if (values.portions.length > 0 && /\b(?:um|uma|\d+)\s+(?:bife|marmita|prato|porcao|refeicao)\b.*\b(?:e|ou)\b.*\b(?:um|uma|\d+)\s+(?:bife|marmita|prato|porcao|refeicao)\b/.test(text))
         result.portions = null;
@@ -92,17 +105,14 @@ export function groundCustomerPatch(proposed: Partial<CustomerDraft>, draft: Cus
     if (pendingQuestion === 'portions' && yes) result.portions = 1;
     if (pendingQuestion === 'portions' && no) result.portions = null;
     if (pendingQuestion === 'zone' && (yes || no)) result.zone = yes ? 'demo_butanta' : 'other';
-    for (const part of parts) {
-        if (uncertain(part)) continue;
-        if (/\b(?:butanta|butata)\b/.test(part)) result.zone = denied(part) ? 'other' : 'demo_butanta';
-        else if (!denied(part) && explicitOtherRegion(part)) result.zone = 'other';
-    }
+    const location = customerLocation(message);
+    if (location.zone !== undefined) result.zone = location.zone;
 
     const noneExcluded = /\b(?:nenhum ingrediente (?:a |para )?excluir|nenhuma restricao|sem restricoes|nao (?:tenho|quero) (?:exclusoes|restricoes)|nao quero excluir (?:nada|nenhum ingrediente))\b/.test(text);
     const safetyAnswer = pendingQuestion === 'foodSafetyConcern' || pendingQuestion === 'excluded';
     if (noneExcluded || (safetyAnswer && (no || noThenMenu) && draft.foodSafetyConcern !== true)) result.excluded = [];
     const exclusions: string[] = [];
-    for (const part of parts) {
+    for (const part of parts.flatMap(part => part.split(/\s+e\s+(?=(?:exclua|excluir|retire|remova|nao|quero|prefiro)\b)/))) {
         const rejected = part.match(/\bnao quero (?:mais )?(?:(?:o|a|um|uma) )?(.+)/)?.[1]?.replace(/[.]+$/, '').trim();
         // Rejecting a whole dish does not exclude each ingredient in its name.
         // A bare "não quero X" is an exclusion only when X names one ingredient.
@@ -111,12 +121,16 @@ export function groundCustomerPatch(proposed: Partial<CustomerDraft>, draft: Cus
             (mentions(rejected, selectedDish) || selectedDish.startsWith(`${rejected} `));
         const ingredientRejection = rejected && !rejectsSelectedDish &&
             catalog.some(item => item.aliases.some(alias => alias === rejected)) ? rejected : undefined;
-        const exclusion = part.match(/\b(?:sem|exclua|excluir|retire|remova|nao pode ter|nao posso (?:comer|consumir)|nao (?:me )?(?:passe|mande|mostre|traga|envie) (?:pratos?|marmitas?) com)\s+(.+)/)?.[1] ?? ingredientRejection;
+        const exclusionMatch = part.match(/\b(?:sem|exclua|excluir|retire|remova|nao pode ter|nao posso (?:comer|consumir)|nao (?:me )?(?:passe|mande|mostre|traga|envie) (?:pratos?|marmitas?) com)\s+(.+)/);
+        const prefix = exclusionMatch ? part.slice(0, exclusionMatch.index).trim() : '';
+        if (/\b(?:nao|nunca|jamais)\s*(?:(?:quero|preciso|vou|deve|pode)\s*(?:que\s*)?)?$/.test(prefix)) continue;
+        const exclusion = exclusionMatch?.[1] ?? ingredientRejection;
         if (!exclusion || /^(?:alerg|restricoes|alterar|mudar|pressa)/.test(exclusion)) continue;
         for (const item of catalog) if (item.aliases.some(alias => mentions(exclusion, alias))) exclusions.push(item.aliases[0]);
         for (const item of proposed.excluded ?? []) if (mentions(exclusion, item)) exclusions.push(item);
     }
-    if (exclusions.length) result.excluded = [...new Set([...(draft.excluded ?? []), ...exclusions])].slice(0, 20);
+    if (exclusions.length) result.excluded = [...new Set([...(draft.excluded ?? []), ...exclusions].map(value =>
+        catalog.find(item => item.aliases.some(alias => normalize(alias) === normalize(value)))?.aliases[0] ?? normalize(value)))].slice(0, 20);
 
     const negativeSafety = /\b(?:(?:nao tenho|nao possuo|sem) alergias?|nao sou (?:alergic[oa]|celiac[oa])|(?:nao (?:ha|tenho)|sem) (?:risco de )?contaminacao)\b/g;
     const deniesSafety = negativeSafety.test(text);
@@ -133,6 +147,8 @@ export function groundCustomerPatch(proposed: Partial<CustomerDraft>, draft: Cus
             result.selectionPreference = 'BEST_RATED';
         else if (/\b(?:menor preco|mais barato|priorizar preco|prefiro preco|prioridade (?:e )?(?:o )?preco)\b/.test(part))
             result.selectionPreference = 'LOWEST_PRICE';
+        else if (/\b(?:mais proximo|mais perto|menor distancia|priorizar proximidade)\b/.test(part)) result.selectionPreference = 'NEAREST';
+        else if (/\b(?:mais rapido|menor prazo|menor tempo|priorizar rapidez)\b/.test(part)) result.selectionPreference = 'FASTEST';
     }
     // Explicit removal is separate from unknown extraction. Safety cannot be
     // removed via "forget allergies"; it requires the retraction above.

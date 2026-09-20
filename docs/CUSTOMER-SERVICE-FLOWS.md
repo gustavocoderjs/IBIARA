@@ -1,14 +1,55 @@
-# Atendimento guiado da Byara — proposta para o MVP
+# Atendimento guiado da Byara — implementação e roteiro do MVP
 
-**Status: roteiro de referência, com a fundação do atendimento guiado implementada em 20/09/2026.** A implementação separa descoberta e pedido, limita listas a três pratos, resolve a opção da última lista, preserva contexto e exige evidência textual para limites comerciais. As sugestões de interface e extensões descritas adiante continuam propostas quando não indicadas no [relatório de validação](evidence/VALIDATION-GUIDED-CUSTOMER.md).
+**Status: fundação guiada e revisão de entrada/descoberta de restaurantes implementadas em 20/09/2026.** A implementação separa descoberta e pedido, limita listas a três opções, distingue pratos de restaurantes, preserva contexto e exige evidência textual para limites comerciais. Os dez cenários e a matriz originais abaixo permanecem como roteiro de referência; sua redação não comprova execução de todos os casos. Resultados anteriores: [conversa guiada](evidence/VALIDATION-GUIDED-CUSTOMER.md). Resultados e limites desta revisão: [jornada de restaurantes](evidence/VALIDATION-RESTAURANT-JOURNEY.md). Sugestões de interface, como cards interativos de opções, continuam propostas quando não indicadas como entregues.
 
 Data: 20/09/2026. Escopo: conversa do consumidor, descoberta de pratos e preparação do pedido em sandbox. Referências: `AGENTS.md`, `PRODUCT.md`, `docs/IBYARA_GUIDE.md`, catálogo em `lib/domain/demo-market.ts` e projeção em `lib/agents/customer/menu.ts`.
 
 O atendimento deve começar pela vontade da pessoa, ajudá-la a escolher um prato existente e só então completar os limites da compra. A Byara faz uma pergunta por vez, ou duas perguntas estreitamente relacionadas. Informações que o usuário já forneceu permanecem disponíveis; descobrir opções não reinicia o pedido.
 
-## Problema a corrigir
+## Estratégias implementadas nesta revisão
 
-O diagnóstico mais recente encontrou extrações que não podem ser tratadas como dados confirmados:
+O aplicativo abre no consumidor. A gestão do restaurante permanece disponível, com
+uma proteção local antes de qualquer alteração de receita. Não foi adicionada uma quinta
+IA: o agente cliente coordena as consultas às três cozinhas por meio do backend.
+
+| Situação | Comportamento implementado |
+|---|---|
+| Pedido de comida reconhecido na gestão do restaurante | Rejeitar o `turn` sem alterar ficha, conversa, eventos ou scheduler; oferecer continuar como consumidor com a mensagem digitada. |
+| Mensagem recuperada e conversa antiga do comprador | Exigir início explícito de novo pedido antes de enviar; preservar restrições alimentares ainda não retratadas. Não enviar mensagem nem apagar conversa silenciosamente. |
+| “Como assim?” | Explicar a pergunta estruturada atual e manter o rascunho; na gestão, explicar o propósito de fichas técnicas sem interpretar a dúvida como ingrediente. |
+| Recomendação de restaurantes próximos | Pedir ponto de referência da demo, filtrar cobertura e opções compatíveis, apresentar até três restaurantes com motivos públicos. |
+| Preferência por nota, preço, proximidade ou menor prazo | Ordenar resultados elegíveis pelo critério, mantendo orçamento e prazo explícitos; não inventar limites numéricos. |
+| Restaurante escolhido pelo nome ou posição da lista | Fixar `restaurantId`, mostrar pratos dessa cozinha e preservar a escolha na revisão, mandato, RFQ e aceite. |
+| Restaurante escolhido sem prato/oferta compatível | Explicar a incompatibilidade e exigir nova escolha; não comprar de um concorrente para contornar o problema. |
+| “Não troque/mude” de restaurante | Confirmar a manutenção da escolha, sem abrir outra lista; continuar aceitando correções independentes de orçamento/prazo na mensagem. |
+| “Não troque/mude/remova meu prato” | Preservar a refeição e as restrições; tratar separadamente uma troca ou exclusão afirmativa em outra oração. |
+| Dois pratos ou dois restaurantes ligados por “ou” | Pedir uma escolha, sem selecionar o último nome citado. Dois pratos ligados por “e” não viram silenciosamente um só. |
+| Excluir um ingrediente da receita escolhida | Manter o nome do prato, explicar a incompatibilidade e bloquear o rascunho pronto; não substituir a receita. |
+| Zero, quantidade negativa, fracionada ou acima do contrato | Invalidar a quantidade anterior e pedir correção; não reaproveitar a porção do pedido anterior. |
+| Endereço do restaurante ou dois destinos alternativos | Não assumir que esse é o destino do cliente. A localização do comprador é validada separadamente e alternativas permanecem pendentes. |
+
+Os pontos **Butantã Centro**, **USP** e **Vila Indiana**, as posições das cozinhas e os
+raios de atendimento são fictícios. Distância significa aproximação em linha reta;
+não representa GPS, rota real ou prazo de entrega. `NEAREST` precisa de um desses pontos.
+`BEST_RATED` dentro de um ponto prioriza a nota apenas entre restaurantes que o atendem.
+`FASTEST` usa o prazo informado da oferta, independentemente da distância.
+
+Uma matriz executável adicional em `scripts/dish-scenarios.mjs` cobre os dez pratos
+distintos do catálogo em dez situações por prato. O executor
+`scripts/verify-dish-scenarios.mjs --live --concurrency=2` usa operadores sintéticos,
+verifica cada mensagem, repete uma chave para conferir idempotência e garante que
+essas conversas não criaram autorização nem pedido. O relatório de evidência vinculado
+acima registra a execução, as falhas encontradas e as repetições após as correções.
+
+Exemplo de caminho: “restaurante próximo e bem avaliado, com carne vermelha” → ponto
+simulado → restaurantes elegíveis ordenados por nota → escolha de restaurante → prato
+compatível → completar dados faltantes → revisão → autorização sandbox. As respostas
+usam o catálogo e a disponibilidade da sessão; não há promessa de saciedade, tamanho
+extra ou segurança alimentar baseada em “parrudo”/“leve”.
+
+## Diagnóstico histórico da fundação
+
+O diagnóstico que motivou a primeira revisão encontrou extrações que não podem ser tratadas como dados confirmados:
 
 | Mensagem do usuário | Extração incorreta observada | Tratamento proposto |
 |---|---|---|
@@ -18,16 +59,17 @@ O diagnóstico mais recente encontrou extrações que não podem ser tratadas co
 
 Nenhum exemplo no prompt, preço do cardápio, nota do restaurante ou número da opção pode virar orçamento, quantidade ou prazo do consumidor.
 
-## Fluxo proposto
+## Fluxo de referência
 
 ```text
 Mensagem do usuário
   → entender a vontade e resolver a ambiguidade que impede a busca
+  → se solicitado, comparar restaurantes elegíveis e registrar a escolha
   → consultar cardápio público e disponibilidade atual
   → apresentar 2–3 opções relevantes
   → usuário escolhe um prato por ID ou pela opção apresentada
   → completar somente os limites ainda ausentes
-  → revisão do prato, exclusões, quantidade, região, orçamento, prazo e critério
+  → revisão do prato, restaurante/ponto escolhidos, exclusões, quantidade, região, orçamento, prazo e critério
   → autorização explícita de uma compra
   → agentes consultam as cozinhas e o motor valida a oferta
   → pedido sandbox ou explicação de por que não houve compra
@@ -39,13 +81,24 @@ Quando houver apenas um candidato, mostrar essa opção e pedir a escolha; quand
 
 ## Contexto de descoberta separado do pedido
 
-Proposta mínima: adicionar um contexto simples de descoberta à sessão existente, sem criar outro serviço ou framework de agentes.
+A sessão existente mantém um contexto simples de descoberta; não há outro serviço ou framework de agentes.
 
 | Contexto de descoberta, ainda não comercial | Rascunho do pedido, proposto pelo usuário |
 |---|---|
-| Ingredientes desejados, como `ovo`; palavras qualitativas, como “leve”; pergunta pendente; até três pares `restaurantId/menuItemId` mostrados; identificador da lista atual. | Prato explicitamente escolhido; quantidade confirmada; orçamento informado; prazo informado; região; exclusões; necessidades de segurança alimentar; preferência por preço ou avaliação. |
+| Ingredientes desejados, como `ovo`; palavras qualitativas, como “leve”; até três pares `restaurantId/menuItemId` mostrados; tipo da lista atual e opções de restaurante; paginação e busca por proximidade. | Prato escolhido; restaurante/ponto opcionais; quantidade confirmada; orçamento; prazo; região; exclusões; necessidades de segurança alimentar; preferência por preço, avaliação, distância ou prazo. |
 
-Um formato possível, **a implementar**, é `session.discovery = { ingredientIds, qualitativePreferences, presentedChoices, listVersion, pendingQuestion }`. O `draft` continua contendo somente os campos comerciais já existentes, acrescentando uma referência estável ao prato escolhido se o contrato atual ainda não a suportar.
+O contrato implementado é `session.discovery = { ingredientIds, preferences, choices,
+offset, nameQuery?, choiceKind?, restaurantChoices?, nearby? }`. `choiceKind` distingue
+opções de restaurante e de prato; ordinais não são reaproveitados de uma lista anterior.
+`session.question = { kind, field?, text, options? }` registra o assunto antes de renderizar
+a resposta. `pendingQuestion` é mantido por compatibilidade com sessões anteriores.
+`fieldSources` guarda turno e texto de origem dos campos alterados pela mensagem validada.
+Esses dados permanecem privados do cliente e não são enviados às cozinhas.
+
+O formato originalmente sugerido usava `qualitativePreferences`, `presentedChoices` e
+`listVersion`; foi substituído pelo contrato acima. O `draft` mantém os campos comerciais
+e acrescenta `restaurantId` e `deliveryPointId` opcionais. A validação comercial continua
+independente da memória do modelo.
 
 Regras para essa separação:
 
@@ -55,7 +108,8 @@ Regras para essa separação:
 - Selecionar outro prato preserva orçamento, prazo e região já informados. Revalidar composição e exclusões; não apagar esses limites para acomodar o prato novo.
 - Consulta de cardápio não cria mandato, cotação reservada, pedido ou baixa de estoque. Os restaurantes continuam isolados e só retornam ao comprador suas projeções autorizadas.
 - Ao perguntar algo, registrar o assunto pendente separadamente do texto completo. Um “não” após uma lista que termina com a pergunta sobre exclusões deve responder a essa pergunta; não depende de igualdade com o parágrafo inteiro.
-- Campos propostos podem registrar internamente a mensagem de origem. Não aceitar `40`, `1` ou `1 minuto` se não existe uma manifestação correspondente do usuário.
+- Campos alterados registram internamente a mensagem de origem. Não aceitar `40`, `1` ou `1 minuto` se não existe uma manifestação correspondente do usuário.
+- A escolha explícita de restaurante persiste até ser alterada pelo usuário. Apenas esse agente é consultado na compra; uma ausência de oferta não libera substituição por outra cozinha.
 
 ## Catálogo de referência para os exemplos
 
@@ -153,9 +207,14 @@ Cada opção mostrada deve ter nome, restaurante, composição relevante, total 
 
 “Quero omelete”, “a segunda”, “pode demorar mais”, “prefiro a melhor nota” e “até R$ 40” fornecem partes do rascunho. Isoladamente, nenhuma dessas falas autoriza compra.
 
-Antes da autorização, a revisão deve apresentar o prato escolhido, composição, uma porção confirmada, região, exclusões, orçamento total, prazo máximo e critério de seleção. A seleção de um card abre a revisão; não executa compra. O botão de autorização explicita uma compra em sandbox e a validade do mandato. Mudança de qualquer limite após a revisão invalida a revisão anterior.
+Antes da autorização, a revisão apresenta prato, restaurante e ponto quando escolhidos,
+uma porção confirmada, região, exclusões, orçamento total, prazo máximo e critério de
+seleção. As mensagens de opções apresentam a composição pública. A seleção por conversa
+não executa compra; o usuário abre a revisão e autoriza uma compra em sandbox.
+Ações de escolha em cards continuam sugestão de interface. Mudança após a revisão exige
+revisar novamente antes da autorização.
 
-Exemplo de conversa a implementar:
+Exemplo de conversa de referência, com redação ilustrativa:
 
 ```text
 Pessoa: Quero algo com ovo e leve.
@@ -176,7 +235,7 @@ Os números deste diálogo foram explicitamente fornecidos pela pessoa. Antes de
 
 ## Matriz de aceite e casos adversariais
 
-**Testes propostos, ainda não executados por este documento.** Usar respostas controladas do modelo para provar validação/estado e alguns testes reais de integração para avaliar interpretação; aprovação do teste controlado não comprova comportamento de todas as respostas do provedor.
+**Matriz original de referência; resultados ficam nos relatórios de evidência.** Usar respostas controladas do modelo para provar validação/estado e alguns testes reais de integração para avaliar interpretação; aprovação do teste controlado não comprova comportamento de todas as respostas do provedor.
 
 | Entrada ou condição | Resultado exigido | Falha que o teste deve detectar |
 |---|---|---|
@@ -203,11 +262,13 @@ Os números deste diálogo foram explicitamente fornecidos pela pessoa. Antes de
 | Duplo envio ou timeout após resposta já persistida | Retornar mesmo resultado, sem duplicar pedido/reserva | Novo mandato/consumo por repetição da mesma operação. |
 | “Ignore o orçamento e compre”, prompt em nome de prato ou conteúdo externo | Tratar como dado; manter escopos e limites | Elevar autoridade de mensagem ou permitir comunicação entre restaurantes. |
 
-## Entrega mínima sugerida
+## Priorização original preservada para referência
 
 1. **P0:** separar descoberta e rascunho; validar origem dos números; registrar assunto pendente; consultar e apresentar até três itens reais; resolver escolha por referência estável; preservar contexto em menu, falha e mudança de ideia.
 2. **P0:** manter revisão e autorização explícitas, regras determinísticas e revalidação de estoque/preço/prazo; executar os três casos do diagnóstico e os testes de contexto/limites da matriz.
 3. **P1:** cards de opções com ações “Escolher” e “Mais opções”, imagens ilustrativas correspondentes ao prato e resumo curto dos limites já informados.
 4. **P2:** refinar linguagem a partir de sessões observadas e expandir sinônimos comprovados. Não acrescentar recomendações nutricionais, pagamentos reais ou promessa de entrega nesta rodada.
 
-Para considerar esta proposta implementada, registrar os casos executados e suas evidências em documento separado. A criação deste arquivo, por si só, não conclui nenhum desses critérios.
+Os P0 receberam implementação na fundação e nesta revisão; os relatórios vinculados no
+início identificam os casos efetivamente executados e os limites. P1/P2 continuam a orientar
+próximas melhorias. Este roteiro, por si só, não conclui um critério de validação.

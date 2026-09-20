@@ -9,13 +9,25 @@ export const customerDraftSchema = z.object({
     zone: z.enum(['demo_butanta', 'other']).nullable(),
     excluded: z.array(z.string().trim().min(1).max(100)).max(20).nullable(),
     foodSafetyConcern: z.boolean().nullable(),
-    selectionPreference: z.enum(['LOWEST_PRICE', 'BEST_RATED']).nullable().optional(),
+    selectionPreference: z.enum(['LOWEST_PRICE', 'BEST_RATED', 'NEAREST', 'FASTEST']).nullable().optional(),
+    restaurantId: z.enum(['niko', 'casa', 'panela']).nullable().optional(),
+    deliveryPointId: z.enum(['butanta_centro', 'usp', 'vila_indiana']).nullable().optional(),
 }).strict();
-export const customerPatchSchema = customerDraftSchema.partial();
+// Extraction may report an unsupported quantity. It is not a valid purchase
+// draft: grounding clears invalid quantities before customerDraftSchema.parse.
+const proposedQuantity = z.preprocess(value => typeof value === 'string' && /^-?\d+(?:[.,]\d+)?$/.test(value)
+    ? Number(value.replace(',', '.')) : value, z.number().finite().nullable().optional());
+const proposedMinutes = z.preprocess(value => typeof value === 'string' && /^\d+$/.test(value)
+    ? Number(value) : value, customerDraftSchema.shape.maxMinutes.optional());
+export const customerPatchSchema = customerDraftSchema.partial().extend({ portions: proposedQuantity, maxMinutes: proposedMinutes });
 export const agentDecisionSchema = z.discriminatedUnion('tool', [
     z.object({ tool: z.literal('propose_request'), patch: customerPatchSchema }).strict(),
     z.object({ tool: z.literal('inspect_offers'), patch: customerPatchSchema.optional() }).strict(),
     z.object({ tool: z.literal('consult_menu'), patch: customerPatchSchema.optional() }).strict(),
+    z.object({ tool: z.literal('discover_restaurants'), patch: customerPatchSchema.optional() }).strict(),
+    // Providers may retain the common envelope. An empty patch is harmless;
+    // any field is rejected because explaining a question cannot edit the draft.
+    z.object({ tool: z.literal('explain_question'), patch: z.object({}).strict().optional() }).strict(),
 ]);
 const messageTurnSchema = z.object({
     message: z.string().trim().min(1).max(1000),
@@ -34,6 +46,15 @@ export type CustomerDiscovery = {
     choices: { restaurantId: string; menuItemId: string; name: string }[];
     offset: number;
     nameQuery?: string;
+    choiceKind?: 'restaurant' | 'dish';
+    restaurantChoices?: { restaurantId: string; name: string }[];
+    nearby?: boolean;
+};
+export type CustomerQuestion = {
+    kind: 'field' | 'location' | 'restaurant_choice' | 'dish_choice' | 'meal_style' | 'portion_meaning' | 'help';
+    field?: keyof CustomerDraft;
+    text: string;
+    options?: string[];
 };
 export type CustomerSession = {
     version: number;
@@ -44,4 +65,6 @@ export type CustomerSession = {
     // Optional for previously persisted workspaces; never part of the purchase mandate.
     discovery?: CustomerDiscovery;
     pendingQuestion?: keyof CustomerDraft | null;
+    question?: CustomerQuestion | null;
+    fieldSources?: Partial<Record<keyof CustomerDraft, { turn: number; text: string }>>;
 };
