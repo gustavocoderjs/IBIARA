@@ -1,0 +1,20 @@
+[
+  {
+    "slug": "frango-grelhado-com-arroz-e-feijao",
+    "dish": "Frango grelhado com arroz e feijão",
+    "prompt": "Use case: photorealistic-natural. Asset type: illustrative food catalog photo for the Brazilian i.byara demo. Create one realistic appetizing photograph of 'Frango grelhado com arroz e feijão': grilled chicken breast with lightly browned surface, distinct fluffy white rice, cooked brown carioca beans, and sautéed orange carrot pieces. Show only these meal ingredients; no broccoli, zucchini, lettuce, tomatoes, eggs, fries, garnish, sauces or cheese. Natural home-cooked Brazilian lunch on one rustic ivory ceramic dinner plate, entirely inside the frame, centered with generous crop-safe margins. Three-quarter overhead camera, warm terracotta tabletop, a little neutral cream linen outside the plate, soft natural side light, tactile true food textures, restrained warm colors. Single landscape 3:2 photograph, ideally 1536x1024. No people, hands, lettering, brand logos, watermark, collage, price badges, labels or additional plates.",
+    "sourcePath": "outputs/dish-images/frango-grelhado-com-arroz-e-feijao.png"
+  },
+  {
+    "slug": "omelete-de-legumes-com-arroz",
+    "dish": "Omelete de legumes com arroz",
+    "prompt": "Use case: photorealistic-natural. Asset type: illustrative Brazilian food catalog photograph. One single appetizing photograph of 'Omelete de legumes com arroz': a softly folded golden two-egg omelette with visible small carrot and zucchini pieces in its interior and a side of fluffy cooked white rice. The omelette must visibly contain orange carrot and green zucchini. Only these meal ingredients, no cheese, tomatoes, beans, meat, salad, fries, garnish or sauce. One rustic ivory ceramic plate, centered and entirely in frame with generous crop-safe margins, warm terracotta tabletop and small cream linen outside the plate. Three-quarter overhead view, soft natural side light, realistic home-cooked Brazilian lunch, natural food texture, same understated warm editorial style as a local food delivery catalog. Single landscape 3:2 photograph ideally1536x1024. No people, hands, words, logos, labels, price tags, watermark or collage.",
+    "sourcePath": "outputs/dish-images/omelete-de-legumes-com-arroz.png"
+  },
+  {
+    "slug": "macarrao-com-carne-e-tomate",
+    "dish": "Macarrão com carne e tomate",
+    "prompt": "Use case: photorealistic-natural. Asset type: illustrative Brazilian food catalog photograph. One single appetizing photograph of 'Macarrão com carne e tomate': cooked short pasta tossed with small visibly diced lean beef pieces and softly sautéed ripe tomato pieces forming a light tomato coating. Beef must be distinct browned little diced pieces, not meatballs or chicken. Only pasta, beef, tomato and basic invisible seasoning; no cheese, basil, leafy garnish, broccoli, cream, rice, salad or extra sides. One rustic ivory ceramic plate, centered and entirely in frame with generous crop-safe margins, warm terracotta tabletop with a small cream linen outside the plate. Three-quarter overhead view, soft natural side light, realistic home-cooked Brazilian food, natural tactile textures, understated warm editorial food photography. Single landscape3:2 image ideally1536x1024. No people, hands, words, logos, labels, price tags, watermark or collage.",
+    "sourcePath": "outputs/dish-images/macarrao-com-carne-e-tomate.png"
+  }
+]

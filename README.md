@@ -176,6 +176,12 @@ Evidências da experiência mobile/voz e limitações de execução: `docs/evide
 
 ## Frontend e Impeccable
 
+As 12 fichas da demo usam dez imagens de pratos, incluindo nove novas ilustrações
+geradas por IA. Assets responsivos e prompts: [registro de imagens](docs/IMAGE_ASSETS.md).
+O desenho proposto para descoberta, recomendação e esclarecimentos da Byara está em
+[atendimento guiado](docs/CUSTOMER-SERVICE-FLOWS.md), com dez cenários e 22 critérios
+de aceite a implementar. Esse documento não declara a nova conversa implementada.
+
 A 0.3.0 traz fotografia gastronômica ilustrativa, paleta tomate/açafrão/cerâmica, fontes locais e hierarquia de compra. O formulário explicita autorização para uma compra e total com entrega; os cálculos continuam no domínio.
 
 - `components/marketplace.tsx`: experiência do consumidor.

@@ -1,0 +1,20 @@
+[
+  {
+    "slug": "frango-com-brocolis-e-arroz",
+    "dish": "Frango com brócolis e arroz",
+    "prompt": "Use case: photorealistic-natural.\nAsset type: food catalog image for a Brazilian restaurant demo.\nPrimary request: one plate of Frango com brócolis e arroz: appetizing home-cooked grilled chicken breast, steamed broccoli florets and plain white rice. These are the only food ingredients visible.\nScene/backdrop: warm terracotta tabletop with cream linen.\nComposition/framing: landscape 3:2, preferably 1536x1024 pixels; three-quarter overhead view; single rustic ivory ceramic plate centered entirely inside the frame with generous crop-safe margins.\nLighting/mood: soft natural side light, warm and realistic, natural food textures.\nConstraints: one plate only. No beans, no tomato, no salad, no cheese, no extra garnish, no parsley or herbs on top. No people, text, logo, watermark or price tag.",
+    "sourcePath": "outputs/dish-images/frango-com-brocolis-e-arroz.png"
+  },
+  {
+    "slug": "omelete-com-tomate-e-arroz",
+    "dish": "Omelete com tomate e arroz",
+    "prompt": "Use case: photorealistic-natural.\nAsset type: food catalog image for a Brazilian restaurant demo.\nPrimary request: one plate of Omelete com tomate e arroz: appetizing home-cooked folded golden omelet containing diced tomato and melted mozzarella cheese, alongside plain white rice. These are the only food ingredients visible.\nScene/backdrop: warm terracotta tabletop with cream linen.\nComposition/framing: landscape 3:2, preferably 1536x1024 pixels; three-quarter overhead view; single rustic ivory ceramic plate centered entirely inside the frame, with generous crop-safe margins around its rim.\nLighting/mood: soft natural side light, warm and realistic, natural food textures.\nConstraints: one plate only. No broccoli, no beans, no salad, no leafy garnish, no parsley or herbs on top, no extra side dishes. No people, text, logo, watermark or price tag.",
+    "sourcePath": "outputs/dish-images/omelete-com-tomate-e-arroz.png"
+  },
+  {
+    "slug": "macarrao-com-frango-e-brocolis",
+    "dish": "Macarrão com frango e brócolis",
+    "prompt": "Use case: photorealistic-natural.\nAsset type: food catalog image for a Brazilian restaurant demo.\nPrimary request: one plate of Macarrão com frango e brócolis: appetizing home-cooked cooked penne pasta lightly coated in cooking oil, grilled chicken breast pieces and steamed broccoli florets. These are the only food ingredients visible.\nScene/backdrop: warm terracotta tabletop with cream linen.\nComposition/framing: landscape 3:2, preferably 1536x1024 pixels; three-quarter overhead view; single rustic ivory ceramic plate centered entirely inside the frame, with generous crop-safe margins around its rim.\nLighting/mood: soft natural side light, warm and realistic, natural food textures.\nConstraints: one plate only. No tomato, no tomato sauce, no cheese, no cream sauce, no rice, no beans, no extra garnish, no parsley or herbs on top. No people, text, logo, watermark or price tag.",
+    "sourcePath": "outputs/dish-images/macarrao-com-frango-e-brocolis.png"
+  }
+]

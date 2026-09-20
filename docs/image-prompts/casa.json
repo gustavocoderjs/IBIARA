@@ -1,0 +1,20 @@
+[
+  {
+    "slug": "frango-com-legumes-e-arroz",
+    "dish": "Frango com legumes e arroz",
+    "prompt": "Use case: photorealistic-natural.\nAsset type: food catalog photograph for a Brazilian home-cooked meal named Frango com legumes e arroz.\nSubject: a single rustic ivory ceramic plate containing appetizing grilled chicken, cooked carrot pieces, cooked zucchini pieces and white rice. Only these food ingredients, no beans and no extra garnish.\nScene: warm terracotta tabletop with cream linen, soft natural side light, realistic home-cooked Brazilian food textures.\nComposition: landscape 3:2, 1536x1024 if possible, three-quarter overhead view. Center the complete plate entirely inside the frame with generous margins for crop-safe catalog use. One plate, one image.\nConstraints: no people, no text, no logos, no watermark, no price tag, no additional dishes, no extra food or garnish. Photorealistic and natural, not a stylized illustration.",
+    "sourcePath": "outputs/dish-images/frango-com-legumes-e-arroz.png"
+  },
+  {
+    "slug": "lentilha-com-arroz-e-salada",
+    "dish": "Lentilha com arroz e salada",
+    "prompt": "Base generation prompt:\nUse case: photorealistic-natural.\nAsset type: food catalog photograph for a Brazilian home-cooked meal named Lentilha com arroz e salada.\nSubject: a single rustic ivory ceramic plate containing cooked brown lentils, white rice, and a fresh salad made only of tomato and lettuce. Keep the lentils, rice and salad visibly recognizable. Only these food ingredients, no meat, no eggs, no additional garnish.\nScene: warm terracotta tabletop with cream linen, soft natural side light, realistic appetizing home-cooked Brazilian food textures.\nComposition: landscape 3:2, 1536x1024 if possible, three-quarter overhead view. Center the complete plate entirely inside the frame with generous margins for crop-safe catalog use. One plate, one image.\nConstraints: no people, no text, no logos, no watermark, no price tag, no additional dishes, no extra food or garnish. Photorealistic and natural, not a stylized illustration.\n\nFinal targeted edit prompt:\nUse case: precise-object-edit.\nEdit target: the provided food photograph of lentils, rice and salad.\nChange only the lentil portion: remove every pale translucent onion cube or onion piece from the lentils, replacing those tiny areas naturally with cooked brown lentils and their own light broth. No onion, garlic pieces, meat, herbs or extra garnish may remain.\nPreserve exactly the existing white rice, tomato-and-lettuce salad, single rustic ivory ceramic plate, plate position, camera angle, landscape 3:2 framing, warm terracotta tabletop, cream linen, natural side light, shadows and overall home-cooked photorealistic style.\nThe only food visible must be cooked brown lentils, white rice, tomato and lettuce. No text, logos, watermark or additional objects. Keep 1536x1024 if possible.",
+    "sourcePath": "outputs/dish-images/lentilha-com-arroz-e-salada-v2.png"
+  },
+  {
+    "slug": "macarrao-com-tomate-e-queijo",
+    "dish": "Macarrão com tomate e queijo",
+    "prompt": "Use case: photorealistic-natural.\nAsset type: food catalog photograph for a Brazilian home-cooked meal named Macarrão com tomate e queijo.\nSubject: a single rustic ivory ceramic plate containing cooked pasta coated in red tomato sauce and mozzarella cheese, with natural appetizing melted cheese texture. Only pasta, tomato sauce and mozzarella. No meat of any kind, no beans, no herbs, no leafy garnish, no additional ingredients.\nScene: warm terracotta tabletop with cream linen, soft natural side light, realistic appetizing home-cooked Brazilian food textures.\nComposition: landscape 3:2, 1536x1024 if possible, three-quarter overhead view. Center the complete plate entirely inside the frame with generous margins for crop-safe catalog use. One plate, one image.\nConstraints: no people, no text, no logos, no watermark, no price tag, no additional dishes, no extra food or garnish. Photorealistic and natural, not a stylized illustration.",
+    "sourcePath": "outputs/dish-images/macarrao-com-tomate-e-queijo.png"
+  }
+]
